@@ -12,7 +12,7 @@
         "256": "assets/vwo/vwo-icon-256.png"
     },
     "background": {
-        "service_worker": "app/worker/fetchIcons.js",
+        "service_worker": "app/worker/background.js",
         "type": "module"
     },
     "permissions" : [
