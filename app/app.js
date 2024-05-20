@@ -41,6 +41,21 @@ const impersonate = (account_id, list) => {
 		account_id = account_id.innerHTML;
 	}
 
+	let impersonator_URL = `https://app.vwo.com/access?accountId=${account_id}`;
+
+	chrome.tabs.query({}, (tabs) => {
+		let foundTab = false;
+		tabs.forEach((tab) => {
+			if (tab.url.includes('app.vwo.com') && !foundTab) {
+				foundTab = true;
+				chrome.tabs.update(tab.id, { url: impersonator_URL });
+			}
+		});
+		if (!foundTab) {
+			chrome.tabs.create({ url: impersonator_URL });
+		}
+	});
+
 	console.log(`Account: ${account_id} impersonated`);
 	last_used_cycle(list);
 };
@@ -87,7 +102,6 @@ const pin_event = (btn) => {
 			} else {
 				ul.appendChild(li);
 			}
-            
 		} else {
 			btn.classList.add('pin-down');
 			ul.insertBefore(li, ul.firstElementChild);

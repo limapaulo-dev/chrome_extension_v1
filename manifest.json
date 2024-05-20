@@ -1,21 +1,19 @@
 {
-    "manifest_version": 3,
-    "name": "VWO Impersonator",
-    "description": "Chrome Extension to make impersonating accounts easier and with QOL functionalities",
-    "version": "1.0.0",
-    "action": {
-      "default_popup": "app/app.html"
-    },
-    "icons": {
-        "48": "assets/vwo/vwo-icon-48.png",
-        "128": "assets/vwo/vwo-icon-128.png",
-        "256": "assets/vwo/vwo-icon-256.png"
-    },
-    "background": {
-        "service_worker": "app/worker/background.js",
-        "type": "module"
-    },
-    "permissions" : [
-        "storage"
-    ]
-  }
+	"manifest_version": 3,
+	"name": "VWO Impersonator",
+	"description": "Chrome Extension to make impersonating accounts easier and with QOL functionalities",
+	"version": "1.0.0",
+	"action": {
+		"default_popup": "app/app.html"
+	},
+	"icons": {
+		"48": "assets/vwo/vwo-icon-48.png",
+		"128": "assets/vwo/vwo-icon-128.png",
+		"256": "assets/vwo/vwo-icon-256.png"
+	},
+	"background": {
+		"service_worker": "app/worker/background.js",
+		"type": "module"
+	},
+	"permissions": ["storage", "tabs"]
+}
