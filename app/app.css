@@ -1,0 +1,234 @@
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section,
+ul {
+	display: block;
+}
+
+/* Hide the arrows in Chrome, Safari, Edge, and Opera */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+body {
+	line-height: 1;
+	width: 400px;
+	max-width: 400px;
+	background-color: #f3f3f3;
+}
+
+hr {
+	margin: 0;
+	margin-top: 2px;
+	width: 100%;
+}
+
+ol,
+ul {
+	list-style: none;
+}
+
+blockquote,
+q {
+	quotes: none;
+}
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+	content: '';
+	content: none;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+input {
+	box-sizing: border-box;
+}
+
+.main-section {
+	margin: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.full,
+hr {
+	flex: 1;
+}
+
+button,
+.group-name-icon {
+	display: flex;
+	justify-content: center;
+	width: 25px;
+}
+
+li,
+.lists-title,
+.header-section,
+.form-inputs,
+.form-labels,
+.filter-bar,
+.form-filter-list,
+.footer-section {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 5px;
+	width: 100%;
+}
+
+li {
+	padding-bottom: 2.5px;
+}
+
+.lists-title {
+	padding-bottom: 5px;
+}
+
+li.group-name-title {
+	padding-bottom: 0;
+}
+
+.lists-ids,
+.list-id,
+.form-id,
+img.logo {
+	width: 80px;
+}
+
+.lists-names,
+.list-name,
+.form-name {
+	width: 160px;
+}
+
+.hidden {
+	display: none;
+}
+
+.pin-down {
+    background-color: rgb(150, 150, 150);
+}
+
+.accounts-list-group {
+	overflow: hidden;
+	max-height: auto;
+	transition: max-height 0.5s ease;
+}
+
+.accounts-list-group.hide {
+	max-height: 0;
+}
+
+/* Animation */
