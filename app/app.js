@@ -119,11 +119,13 @@ const pin_event = (btn) => {
 		let ul_main = document.querySelector('.accounts-list-group');
 		let ul_pinned = document.querySelector('.accounts-pinned-group');
 
-		if (btn.classList.contains('pin-down')) {
-			btn.classList.remove('pin-down');
+		if (btn.classList.contains('pinned-down')) {
+			li.classList.remove('pinned-down');
+			btn.classList.remove('pinned-down');
 			ul_main.appendChild(li);
 		} else {
-			btn.classList.add('pin-down');
+			li.classList.add('pinned-down');
+			btn.classList.add('pinned-down');
 			ul_pinned.appendChild(li);
 		}
 		sort_account_list();
@@ -183,6 +185,7 @@ const createFeatures = (type, new_account) => {
 
 	new_account.appendChild(btn_impersonate);
 };
+
 const createAcc = (type, list, account_id, account_name) => {
 	let new_account = document.createElement('li');
 	let new_account_id = document.createElement('p');
@@ -207,6 +210,25 @@ const createAcc = (type, list, account_id, account_name) => {
 	list.appendChild(new_account);
 };
 
+document.querySelectorAll('.dropdown').forEach((dropdown) => {
+	dropdown.addEventListener('click', function () {
+		let parent = this.parentElement;
+		let gran_parent = parent.parentElement;
+
+		let thisList = gran_parent.querySelectorAll('ul');
+
+		thisList.forEach((list) => {
+			if ((list.style.display === 'block' || list.style.display === '') && list.children.length > 0) {
+				this.classList.add('up');
+				list.style.display = 'none';
+			} else {
+				this.classList.remove('up');
+				list.style.display = 'block';
+			}
+		});
+	});
+});
+
 const dropdown_event_listener = (dropdown) => {
 	dropdown.addEventListener('click', function () {
 		let parent = this.parentElement;
@@ -225,4 +247,3 @@ const dropdown_event_listener = (dropdown) => {
 		});
 	});
 };
-
