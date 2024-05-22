@@ -14,13 +14,6 @@
 			</header>
 			<section class="form-section">
 				<form class="form-set-account">
-					<!--           <div class="form-labels">
-            <label class="form-id" for="account-id">Account ID</label>
-            <label class="form-name full" for="account-name"
-              >Account Name</label
-            >
-            <label for="btn-save">Add to List</label>
-          </div> -->
 					<div class="form-inputs">
 						<input class="form-id" type="number" id="account-id" placeholder="Account ID" min="1" required />
 						<input class="form-name full" type="text" placeholder="Account Name" id="account-name" title="Required when saving" required />
@@ -40,33 +33,7 @@
 					<p class="group-name-title full">Recent</p>
 					<button class="group-name-icon dropdown show">🔽</button>
 				</div>
-				<ul class="last-used-group">
-					<!-- 					<li class="account">
-						<p class="account-id list-id">345</p>
-						<p class="account-name list-name full">Placeholder name</p>
-						<button class="btn-impersonate">🎭</button>
-					</li>
-					<li class="account">
-						<p class="account-id list-id">12424</p>
-						<p class="account-name list-name full">Placeholder name</p>
-						<button class="btn-impersonate">🎭</button>
-					</li>
-					<li class="account">
-						<p class="account-id list-id">65345</p>
-						<p class="account-name list-name full">Placeholder name</p>
-						<button class="btn-impersonate">🎭</button>
-					</li>
-					<li class="account">
-						<p class="account-id list-id">4564</p>
-						<p class="account-name list-name full">Placeholder name</p>
-						<button class="btn-impersonate">🎭</button>
-					</li>
-					<li class="account">
-						<p class="account-id list-id">45745</p>
-						<p class="account-name list-name full">Placeholder name</p>
-						<button class="btn-impersonate">🎭</button>
-					</li> -->
-				</ul>
+				<div class="last-used-groups"><ul class="last-used-group"></ul></div>
 				<hr />
 			</section>
 			<!--      <section class="custom-list">
@@ -93,16 +60,10 @@
 					<p class="lists-names full">Account Name</p>
 					<button class="group-name-icon dropdown show">🔽</button>
 				</div>
-				<ul class="accounts-list-group">
-					<!-- 					<li class="account-1">
-						<p class="account-id list-id">8874561</p>
-						<p class="account-name list-name full">Placeholder name</p>
-						<button class="btn-folder">📁</button>
-						<button class="btn-delete">🗑</button>
-						<button class="btn-pin">📌</button>
-						<button class="btn-impersonate">🎭</button>
-					</li> -->
-				</ul>
+				<div class="lists-groups">
+					<ul class="accounts-pinned-group"></ul>
+					<ul class="accounts-list-group"></ul>
+				</div>
 				<hr />
 			</section>
 		</section>

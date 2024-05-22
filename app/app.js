@@ -84,28 +84,49 @@ const delete_event = (btn) => {
 	});
 };
 
+const sort_list = (list) => {
+	list.childNodes.forEach((li) => {
+		console.log(li);
+		console.log(li.classList.value);
+		if (!li.querySelector('button').classList.contains('pin-down')) {
+			for (let index = 1; index <= list.length; index++) {
+				parseInt(li.classList.value.split('-')[1]) == index;
+				list.appendChild(li);
+			}
+		}
+	});
+};
+
+const sort_account_list = () => {
+	let ul = document.querySelector('.accounts-list-group');
+	let liArray = Array.from(ul.querySelectorAll('li'));
+
+	liArray.sort(function (a, b) {
+		let aClass = a.className;
+		let bClass = b.className;
+		return aClass.localeCompare(bClass);
+	});
+
+	ul.innerHTML = '';
+	liArray.forEach((li) => {
+		ul.appendChild(li);
+	});
+};
+
 const pin_event = (btn) => {
 	btn.addEventListener('click', () => {
 		let li = btn.parentElement;
-		let ul = li.parentElement;
+		let ul_main = document.querySelector('.accounts-list-group');
+		let ul_pinned = document.querySelector('.accounts-pinned-group');
 
 		if (btn.classList.contains('pin-down')) {
 			btn.classList.remove('pin-down');
-
-			let index = parseInt(li.classList.value.split('-')[1]);
-
-			if (index == 1) {
-				ul.insertBefore(li, ul.firstElementChild);
-			} else if (ul.children.length > index) {
-				let refChild = ul.children[index + 1];
-				ul.insertBefore(li, refChild);
-			} else {
-				ul.appendChild(li);
-			}
+			ul_main.appendChild(li);
 		} else {
 			btn.classList.add('pin-down');
-			ul.insertBefore(li, ul.firstElementChild);
+			ul_pinned.appendChild(li);
 		}
+		sort_account_list();
 	});
 };
 
@@ -187,60 +208,21 @@ const createAcc = (type, list, account_id, account_name) => {
 };
 
 const dropdown_event_listener = (dropdown) => {
-	dropdown.addEventListener('click', function (event) {
+	dropdown.addEventListener('click', function () {
 		let parent = this.parentElement;
 		let gran_parent = parent.parentElement;
 
-		let thisList = gran_parent.querySelector('ul');
+		let thisList = gran_parent.querySelectorAll('ul');
 
-		if ((thisList.style.display === 'block' || thisList.style.display === '') && thisList.children.length > 0) {
-			// If the list is hidden or has no display property, show it
-			thisList.style.display = 'none';
-		} else {
-			// If the list is visible, hide it
-			thisList.style.display = 'block';
-		}
+		thisList.forEach((list) => {
+			if ((list.style.display === 'block' || list.style.display === '') && list.children.length > 0) {
+				this.classList.add('up');
+				list.style.display = 'none';
+			} else {
+				this.classList.remove('up');
+				list.style.display = 'block';
+			}
+		});
 	});
 };
 
-document.querySelectorAll('.dropdown').forEach((dropdown) => {
-	dropdown_event_listener(dropdown);
-});
-
-/* document.getElementById('toggleButton').addEventListener('click', function () {
-    
-	let itemList = document.getElementById('itemList');
-	if (itemList.classList.contains('hide')) {
-		// Show the list
-		itemList.classList.remove('hide');
-		itemList.style.maxHeight = itemList.scrollHeight + 'px';
-		itemList.addEventListener(
-			'transitionend',
-			function () {
-				itemList.style.maxHeight = null; // Remove the max-height after the transition ends
-			},
-			{ once: true }
-		);
-	} else {
-		// Hide the list
-		itemList.style.maxHeight = itemList.scrollHeight + 'px'; // Set max-height to current scrollHeight
-		requestAnimationFrame(() => {
-			itemList.style.maxHeight = '0';
-		});
-		itemList.classList.add('hide');
-	}
-});
- */
-/* // Ensure the list is fully expanded on page load
-window.addEventListener('load', function () {
-	let itemList = document.getElementById('itemList');
-	itemList.style.maxHeight = itemList.scrollHeight + 'px';
-	itemList.addEventListener(
-		'transitionend',
-		function () {
-			itemList.style.maxHeight = null; // Remove the max-height after the transition ends
-		},
-		{ once: true }
-	);
-});
- */

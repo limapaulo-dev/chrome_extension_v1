@@ -218,7 +218,11 @@ img.logo {
 }
 
 .pin-down {
-    background-color: rgb(150, 150, 150);
+	background-color: rgb(150, 150, 150);
+}
+
+.up {
+	transform: rotate(180deg);
 }
 
 .accounts-list-group {
