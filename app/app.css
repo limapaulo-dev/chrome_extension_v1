@@ -254,17 +254,12 @@ li,
 	width: 100%;
 }
 
-ul {
-	display: flex;
-	flex-direction: column;
-	gap: 3px;
-}
 
-li:nth-child(odd), li:nth-child(odd) button {
+.odd li:nth-child(odd), .odd li:nth-child(odd) button {
 	background-color: rgb(240, 240, 240);
 }
 
-li:nth-child(odd) button:hover {
+.odd i:nth-child(odd) button:hover {
 	background-color: rgb(220, 220, 220);
 }
 
@@ -274,6 +269,14 @@ li.pinned-down, li.pinned-down button{
 
 li.pinned-down button:hover {
 	background-color: rgb(144, 168, 193);
+}
+
+.even li:nth-child(even), .even li:nth-child(even) button {
+	background-color: rgb(240, 240, 240);
+}
+
+.even li:nth-child(even) button:hover {
+	background-color: rgb(220, 220, 220);
 }
 
 .lists-ids,

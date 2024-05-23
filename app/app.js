@@ -29,6 +29,53 @@ document.getElementById('filter-list-input').addEventListener('keyup', function 
 	});
 });
 
+document.querySelectorAll('.dropdown').forEach((dropdown) => {
+	dropdown.addEventListener('click', function () {
+		let parent = this.parentElement;
+		let gran_parent = parent.parentElement;
+
+		let thisList = gran_parent.querySelectorAll('ul');
+
+		thisList.forEach((list) => {
+			if ((list.style.display === 'block' || list.style.display === '') && list.children.length > 0) {
+				this.classList.add('up');
+				list.style.display = 'none';
+			} else {
+				this.classList.remove('up');
+				list.style.display = 'block';
+			}
+		});
+	});
+});
+
+document.querySelector('.form-set-account').addEventListener('submit', function (event) {
+	event.preventDefault();
+
+	let account_id = document.querySelector('#account-id');
+	let account_name = document.querySelector('#account-name');
+
+	account_id = account_id.value.trim();
+	account_name = account_name.value.trim();
+
+	let list = document.querySelector('.accounts-list-group');
+	let type = 'main-list';
+
+	if (event.submitter.id == 'btn-impersonate') {
+		list = document.querySelector('.last-used-group');
+		type = 'recent-used';
+	}
+
+	createAcc(type, list, account_id, account_name);
+	document.querySelector('#account-id').value = '';
+	document.querySelector('#account-name').value = '';
+
+	if (event.submitter.id == 'btn-impersonate') {
+		impersonate(account_id, list);
+	}
+
+	push_data();
+});
+
 const last_used_cycle = (list) => {
 	if (list.children.length > 5) {
 		let first_born = list.firstElementChild;
@@ -58,6 +105,7 @@ const impersonate = (account_id, list) => {
 
 	console.log(`Account: ${account_id} impersonated`);
 	last_used_cycle(list);
+	push_data();
 };
 
 const impersonate_event = (btn) => {
@@ -75,6 +123,7 @@ const impersonate_event = (btn) => {
 		createAcc(type, list, account_id, account_name);
 
 		impersonate(account_id, list);
+		push_data();
 	});
 };
 
@@ -82,6 +131,7 @@ const delete_event = (btn) => {
 	btn.addEventListener('click', () => {
 		btn.parentElement.remove();
 	});
+	push_data();
 };
 
 const sort_list = (list) => {
@@ -121,42 +171,21 @@ const pin_event = (btn) => {
 
 		if (btn.classList.contains('pinned-down')) {
 			li.classList.remove('pinned-down');
+			ul_main.classList.add('odd');
+			ul_main.classList.remove('even');
 			btn.classList.remove('pinned-down');
 			ul_main.appendChild(li);
 		} else {
 			li.classList.add('pinned-down');
+			ul_main.classList.remove('odd');
+			ul_main.classList.add('even');
 			btn.classList.add('pinned-down');
 			ul_pinned.appendChild(li);
 		}
 		sort_account_list();
+		push_data();
 	});
 };
-
-document.querySelector('.form-set-account').addEventListener('submit', function (event) {
-	event.preventDefault();
-
-	let account_id = document.querySelector('#account-id');
-	let account_name = document.querySelector('#account-name');
-
-	account_id = account_id.value.trim();
-	account_name = account_name.value.trim();
-
-	let list = document.querySelector('.accounts-list-group');
-	let type = 'main-list';
-
-	if (event.submitter.id == 'btn-impersonate') {
-		list = document.querySelector('.last-used-group');
-		type = 'recent-used';
-	}
-
-	createAcc(type, list, account_id, account_name);
-	document.querySelector('#account-id').value = '';
-	document.querySelector('#account-name').value = '';
-
-	if (event.submitter.id == 'btn-impersonate') {
-		impersonate(account_id, list);
-	}
-});
 
 const createFeatures = (type, new_account) => {
 	let btn_impersonate = document.createElement('button');
@@ -208,42 +237,34 @@ const createAcc = (type, list, account_id, account_name) => {
 	createFeatures(type, new_account);
 
 	list.appendChild(new_account);
+	push_data();
 };
 
-document.querySelectorAll('.dropdown').forEach((dropdown) => {
-	dropdown.addEventListener('click', function () {
-		let parent = this.parentElement;
-		let gran_parent = parent.parentElement;
+const push_list = (list) => {
+	const arr = [];
 
-		let thisList = gran_parent.querySelectorAll('ul');
+	list.forEach((li) => {
+		let acc_id = li.querySelector('.account-id').innerHTML;
+		let acc_name = li.querySelector('.account-name').innerHTML || '';
 
-		thisList.forEach((list) => {
-			if ((list.style.display === 'block' || list.style.display === '') && list.children.length > 0) {
-				this.classList.add('up');
-				list.style.display = 'none';
-			} else {
-				this.classList.remove('up');
-				list.style.display = 'block';
-			}
-		});
+		const arr_li = [acc_id, acc_name];
+		arr.push(arr_li);
 	});
-});
 
-const dropdown_event_listener = (dropdown) => {
-	dropdown.addEventListener('click', function () {
-		let parent = this.parentElement;
-		let gran_parent = parent.parentElement;
-
-		let thisList = gran_parent.querySelectorAll('ul');
-
-		thisList.forEach((list) => {
-			if ((list.style.display === 'block' || list.style.display === '') && list.children.length > 0) {
-				this.classList.add('up');
-				list.style.display = 'none';
-			} else {
-				this.classList.remove('up');
-				list.style.display = 'block';
-			}
-		});
-	});
+	return arr;
 };
+
+const push_data = () => {
+	const recently_impersonated = document.querySelectorAll('.last-used-group li');
+	const pinned_group = document.querySelectorAll('.accounts-pinned-group li');
+	const list_group = document.querySelectorAll('.accounts-list-group li');
+
+	const prefs = {
+		recently_impersonated: push_list(recently_impersonated),
+		pinned_group: push_list(pinned_group),
+		list_group: push_list(list_group),
+	};
+	chrome.runtime.sendMessage({ event: 'onStart', prefs });
+};
+
+chrome.storage.
