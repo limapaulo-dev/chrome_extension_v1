@@ -209,7 +209,9 @@ const createFeatures = (type, new_account) => {
 };
 
 const createAcc = (type, list, account_id, account_name) => {
+	console.log('');
 	if (!is_account_new(type, list, account_id)) {
+		console.log('account is not new!');
 		return;
 	}
 
@@ -233,9 +235,10 @@ const createAcc = (type, list, account_id, account_name) => {
 
 	createFeatures(type, new_account);
 
-	console.log('account created')
+	console.log('account created: ' + new_account);
 	list.appendChild(new_account);
 	push_data();
+	console.log('');
 };
 
 const push_list = (list) => {
@@ -368,6 +371,11 @@ const traverseBookmarks = (bookmarks) => {
 	});
 };
 
-chrome.bookmarks.getTree((bookmarkTreeNodes) => {
-	traverseBookmarks(bookmarkTreeNodes);
+chrome.storage.local.get('hasRun', (result) => {
+	if (!result.hasRun) {
+		chrome.bookmarks.getTree((bookmarkTreeNodes) => {
+			traverseBookmarks(bookmarkTreeNodes);
+			chrome.storage.local.set({ hasRun: true }, () => {});
+		});
+	}
 });
