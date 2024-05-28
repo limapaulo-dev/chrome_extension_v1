@@ -15,5 +15,5 @@
 		"service_worker": "app/worker/background.js",
 		"type": "module"
 	},
-	"permissions": ["storage", "tabs"]
+	"permissions": ["storage", "tabs", "bookmarks"]
 }

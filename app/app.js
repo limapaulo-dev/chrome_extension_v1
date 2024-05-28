@@ -27,6 +27,7 @@ document.getElementById('filter-list-input').addEventListener('keyup', function 
 			item.classList.add('hidden');
 		}
 	});
+	push_data();
 });
 
 document.querySelectorAll('.dropdown').forEach((dropdown) => {
@@ -45,6 +46,7 @@ document.querySelectorAll('.dropdown').forEach((dropdown) => {
 				list.style.display = 'block';
 			}
 		});
+		push_data();
 	});
 });
 
@@ -72,8 +74,6 @@ document.querySelector('.form-set-account').addEventListener('submit', function 
 	if (event.submitter.id == 'btn-impersonate') {
 		impersonate(account_id, list);
 	}
-
-	push_data();
 });
 
 const last_used_cycle = (list) => {
@@ -96,16 +96,14 @@ const impersonate = (account_id, list) => {
 			if (tab.url.includes('app.vwo.com') && !foundTab) {
 				foundTab = true;
 				chrome.tabs.update(tab.id, { url: impersonator_URL });
+				chrome.tabs.update(tab.id, { active: true });
 			}
 		});
 		if (!foundTab) {
 			chrome.tabs.create({ url: impersonator_URL });
 		}
 	});
-
-	console.log(`Account: ${account_id} impersonated`);
 	last_used_cycle(list);
-	push_data();
 };
 
 const impersonate_event = (btn) => {
@@ -130,20 +128,7 @@ const impersonate_event = (btn) => {
 const delete_event = (btn) => {
 	btn.addEventListener('click', () => {
 		btn.parentElement.remove();
-	});
-	push_data();
-};
-
-const sort_list = (list) => {
-	list.childNodes.forEach((li) => {
-		console.log(li);
-		console.log(li.classList.value);
-		if (!li.querySelector('button').classList.contains('pin-down')) {
-			for (let index = 1; index <= list.length; index++) {
-				parseInt(li.classList.value.split('-')[1]) == index;
-				list.appendChild(li);
-			}
-		}
+		push_data();
 	});
 };
 
@@ -161,6 +146,7 @@ const sort_account_list = () => {
 	liArray.forEach((li) => {
 		ul.appendChild(li);
 	});
+	push_data();
 };
 
 const pin_event = (btn) => {
@@ -187,26 +173,33 @@ const pin_event = (btn) => {
 	});
 };
 
+const is_account_new = (type, list, account_id) => {
+	let is_account_new = true;
+
+	list.querySelectorAll('li').forEach((li) => {
+		let list_account = li.querySelector('.account-id').textContent;
+		if (list_account == account_id) is_account_new = false;
+	});
+
+	console.log('Is account new? ' + is_account_new);
+	return is_account_new;
+};
+
 const createFeatures = (type, new_account) => {
 	let btn_impersonate = document.createElement('button');
-	btn_impersonate.innerHTML = '🎭';
+	btn_impersonate.textContent = '🎭';
 	impersonate_event(btn_impersonate);
 	btn_impersonate.classList.add('btn-impersonate');
 
 	if (type == 'main-list') {
-		/* 		let btn_move = document.createElement('button');
-		btn_move.innerHTML = '📁';
-		btn_move.classList.add('btn-folder');
-		new_account.appendChild(btn_move); */
-
 		let btn_delete = document.createElement('button');
-		btn_delete.innerHTML = '🗑';
+		btn_delete.textContent = '🗑';
 		btn_delete.classList.add('btn-delete');
 		delete_event(btn_delete);
 		new_account.appendChild(btn_delete);
 
 		let btn_pin = document.createElement('button');
-		btn_pin.innerHTML = '📌';
+		btn_pin.textContent = '📌';
 		btn_pin.classList.add('btn-pin');
 		pin_event(btn_pin);
 		new_account.appendChild(btn_pin);
@@ -216,6 +209,10 @@ const createFeatures = (type, new_account) => {
 };
 
 const createAcc = (type, list, account_id, account_name) => {
+	if (!is_account_new(type, list, account_id)) {
+		return;
+	}
+
 	let new_account = document.createElement('li');
 	let new_account_id = document.createElement('p');
 	let new_account_name = document.createElement('p');
@@ -226,16 +223,17 @@ const createAcc = (type, list, account_id, account_name) => {
 		new_account.classList.add(`account-${list.children.length + 1}`);
 	}
 
-	new_account_id.innerHTML = account_id;
+	new_account_id.textContent = account_id;
 	new_account_id.classList.add('account-id', 'list-id');
 	new_account.appendChild(new_account_id);
 
-	new_account_name.innerHTML = account_name;
+	new_account_name.textContent = account_name;
 	new_account_name.classList.add('account-name', 'list-name', 'full');
 	new_account.appendChild(new_account_name);
 
 	createFeatures(type, new_account);
 
+	console.log('account created')
 	list.appendChild(new_account);
 	push_data();
 };
@@ -244,27 +242,132 @@ const push_list = (list) => {
 	const arr = [];
 
 	list.forEach((li) => {
-		let acc_id = li.querySelector('.account-id').innerHTML;
-		let acc_name = li.querySelector('.account-name').innerHTML || '';
+		let account = {
+			acc_id: li.querySelector('.account-id').innerHTML,
+			acc_name: li.querySelector('.account-name').innerHTML || '',
+			acc_class_order: li.classList.value,
+		};
 
-		const arr_li = [acc_id, acc_name];
-		arr.push(arr_li);
+		arr.push(account);
 	});
 
 	return arr;
 };
 
+const pull_account = (li, ul) => {
+	let type = 'main-list';
+
+	if (ul.classList.contains('last-used-group')) {
+		type = 'recent-used';
+	}
+
+	let account = document.createElement('li');
+	let account_id = document.createElement('p');
+	let account_name = document.createElement('p');
+
+	account.classList.add(...li.acc_class_order.split(' '));
+
+	account_id.textContent = li.acc_id;
+	account_id.classList.add('account-id', 'list-id');
+	account.appendChild(account_id);
+
+	account_name.textContent = li.acc_name;
+	account_name.classList.add('account-name', 'list-name', 'full');
+	account.appendChild(account_name);
+
+	createFeatures(type, account);
+
+	if (ul.classList.contains('accounts-pinned-group')) {
+		account.querySelector('.btn-pin').classList.add('pinned-down');
+	}
+
+	ul.appendChild(account);
+};
+
 const push_data = () => {
+	/* 	const id_input = document.querySelector('#account-id').value;
+	const name_input = document.querySelector('#account-name').value; */
+	const filter_input = document.querySelector('#filter-list-input').value;
+
 	const recently_impersonated = document.querySelectorAll('.last-used-group li');
 	const pinned_group = document.querySelectorAll('.accounts-pinned-group li');
 	const list_group = document.querySelectorAll('.accounts-list-group li');
 
+	const recently_impersonated_dropdown = document.querySelector('.last-used button.dropdown').classList.contains('up');
+	const list_group_dropdown = document.querySelector('.accounts-list button.dropdown').classList.contains('up');
+
 	const prefs = {
-		recently_impersonated: push_list(recently_impersonated),
-		pinned_group: push_list(pinned_group),
-		list_group: push_list(list_group),
+		popup: {
+			/* id_input: id_input,
+			name_input: name_input, */
+
+			recently_impersonated: push_list(recently_impersonated),
+			pinned_group: push_list(pinned_group),
+			list_group: push_list(list_group),
+
+			recently_impersonated_dropdown: recently_impersonated_dropdown,
+			list_group_dropdown: list_group_dropdown,
+
+			filter_input: filter_input,
+		},
 	};
-	chrome.runtime.sendMessage({ event: 'onStart', prefs });
+	chrome.runtime.sendMessage({ event: 'save', prefs });
 };
 
-chrome.storage.
+chrome.storage.local.get('popup', (result) => {
+	const { popup } = result;
+
+	/* 	document.querySelector('#account-id').value = popup.id_input;
+	document.querySelector('#account-name').value= popup.name_input; */
+
+	document.querySelector('#filter-list-input').value = popup.filter_input;
+
+	const recently_impersonated_ul = document.querySelector('.last-used-group');
+	const pinned_group_ul = document.querySelector('.accounts-pinned-group');
+	const list_group_ul = document.querySelector('.accounts-list-group');
+
+	popup.recently_impersonated.forEach((li) => {
+		pull_account(li, recently_impersonated_ul);
+	});
+	popup.pinned_group.forEach((li) => {
+		pull_account(li, pinned_group_ul);
+	});
+	popup.list_group.forEach((li) => {
+		pull_account(li, list_group_ul);
+	});
+
+	if (popup.recently_impersonated_dropdown == true) {
+		document.querySelector('.last-used button.dropdown').classList.add('up');
+		document.querySelector('.last-used-group').style.display = 'none';
+	}
+
+	if (popup.list_group_dropdown == true) {
+		document.querySelector('.accounts-list button.dropdown').classList.add('up');
+
+		document.querySelectorAll('.lists-groups ul').forEach((ul) => {
+			ul.style.display = 'none';
+		});
+	}
+
+	push_data();
+});
+
+const traverseBookmarks = (bookmarks) => {
+	const regex = /accountId\s*=\s*(\d+);/;
+
+	bookmarks.forEach((bookmark) => {
+		if (bookmark.url && regex.test(decodeURIComponent(bookmark.url))) {
+			let list_group_ul = document.querySelector('.accounts-list-group');
+			let account_id = decodeURIComponent(bookmark.url).match(regex)[1];
+			createAcc('main-list', list_group_ul, account_id, bookmark.title);
+		}
+
+		if (bookmark.children) {
+			traverseBookmarks(bookmark.children);
+		}
+	});
+};
+
+chrome.bookmarks.getTree((bookmarkTreeNodes) => {
+	traverseBookmarks(bookmarkTreeNodes);
+});
