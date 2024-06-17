@@ -291,8 +291,8 @@ const pull_account = (li, ul) => {
 };
 
 const push_data = () => {
-	/* 	const id_input = document.querySelector('#account-id').value;
-	const name_input = document.querySelector('#account-name').value; */
+	const id_input = document.querySelector('#account-id').value;
+	const name_input = document.querySelector('#account-name').value;
 	const filter_input = document.querySelector('#filter-list-input').value;
 
 	const recently_impersonated = document.querySelectorAll('.last-used-group li');
@@ -304,8 +304,8 @@ const push_data = () => {
 
 	const prefs = {
 		popup: {
-			/* id_input: id_input,
-			name_input: name_input, */
+			id_input: id_input,
+			name_input: name_input,
 
 			recently_impersonated: push_list(recently_impersonated),
 			pinned_group: push_list(pinned_group),
