@@ -68,8 +68,6 @@ document.querySelector('.form-set-account').addEventListener('submit', function 
 	}
 
 	createAcc(type, list, account_id, account_name);
-	document.querySelector('#account-id').value = '';
-	document.querySelector('#account-name').value = '';
 
 	if (event.submitter.id == 'btn-impersonate') {
 		impersonate(account_id, list);
@@ -81,6 +79,7 @@ const last_used_cycle = (list) => {
 		let first_born = list.firstElementChild;
 		list.removeChild(first_born);
 	}
+	push_data();
 };
 
 const impersonate = (account_id, list) => {
@@ -92,17 +91,26 @@ const impersonate = (account_id, list) => {
 
 	chrome.tabs.query({}, (tabs) => {
 		let foundTab = false;
+
 		tabs.forEach((tab) => {
 			if (tab.url.includes('app.vwo.com') && !foundTab) {
 				foundTab = true;
-				chrome.tabs.update(tab.id, { url: impersonator_URL });
-				chrome.tabs.update(tab.id, { active: true });
+
+				chrome.tabs.update(tab.id, { url: impersonator_URL, active: true }, (updatedTab) => {
+					chrome.windows.get(updatedTab.windowId, (window) => {
+						if (window.state === 'minimized') {
+							chrome.windows.update(window.id, { focused: true, state: 'normal' }, () => {});
+						}
+					});
+				});
 			}
 		});
+
 		if (!foundTab) {
 			chrome.tabs.create({ url: impersonator_URL });
 		}
 	});
+
 	last_used_cycle(list);
 };
 
@@ -181,7 +189,6 @@ const is_account_new = (type, list, account_id) => {
 		if (list_account == account_id) is_account_new = false;
 	});
 
-	console.log('Is account new? ' + is_account_new);
 	return is_account_new;
 };
 
@@ -209,9 +216,7 @@ const createFeatures = (type, new_account) => {
 };
 
 const createAcc = (type, list, account_id, account_name) => {
-	console.log('');
 	if (!is_account_new(type, list, account_id)) {
-		console.log('account is not new!');
 		return;
 	}
 
@@ -235,10 +240,8 @@ const createAcc = (type, list, account_id, account_name) => {
 
 	createFeatures(type, new_account);
 
-	console.log('account created: ' + new_account);
 	list.appendChild(new_account);
 	push_data();
-	console.log('');
 };
 
 const push_list = (list) => {
@@ -318,41 +321,43 @@ const push_data = () => {
 };
 
 chrome.storage.local.get('popup', (result) => {
-	const { popup } = result;
+	if (result.popup) {
+		const { popup } = result;
 
-	/* 	document.querySelector('#account-id').value = popup.id_input;
-	document.querySelector('#account-name').value= popup.name_input; */
+		/* 	document.querySelector('#account-id').value = popup.id_input;
+		document.querySelector('#account-name').value= popup.name_input; */
 
-	document.querySelector('#filter-list-input').value = popup.filter_input;
+		document.querySelector('#filter-list-input').value = popup.filter_input;
 
-	const recently_impersonated_ul = document.querySelector('.last-used-group');
-	const pinned_group_ul = document.querySelector('.accounts-pinned-group');
-	const list_group_ul = document.querySelector('.accounts-list-group');
+		const recently_impersonated_ul = document.querySelector('.last-used-group');
+		const pinned_group_ul = document.querySelector('.accounts-pinned-group');
+		const list_group_ul = document.querySelector('.accounts-list-group');
 
-	popup.recently_impersonated.forEach((li) => {
-		pull_account(li, recently_impersonated_ul);
-	});
-	popup.pinned_group.forEach((li) => {
-		pull_account(li, pinned_group_ul);
-	});
-	popup.list_group.forEach((li) => {
-		pull_account(li, list_group_ul);
-	});
-
-	if (popup.recently_impersonated_dropdown == true) {
-		document.querySelector('.last-used button.dropdown').classList.add('up');
-		document.querySelector('.last-used-group').style.display = 'none';
-	}
-
-	if (popup.list_group_dropdown == true) {
-		document.querySelector('.accounts-list button.dropdown').classList.add('up');
-
-		document.querySelectorAll('.lists-groups ul').forEach((ul) => {
-			ul.style.display = 'none';
+		popup.recently_impersonated.forEach((li) => {
+			pull_account(li, recently_impersonated_ul);
 		});
-	}
+		popup.pinned_group.forEach((li) => {
+			pull_account(li, pinned_group_ul);
+		});
+		popup.list_group.forEach((li) => {
+			pull_account(li, list_group_ul);
+		});
 
-	push_data();
+		if (popup.recently_impersonated_dropdown == true) {
+			document.querySelector('.last-used button.dropdown').classList.add('up');
+			document.querySelector('.last-used-group').style.display = 'none';
+		}
+
+		if (popup.list_group_dropdown == true) {
+			document.querySelector('.accounts-list button.dropdown').classList.add('up');
+
+			document.querySelectorAll('.lists-groups ul').forEach((ul) => {
+				ul.style.display = 'none';
+			});
+		}
+
+		push_data();
+	}
 });
 
 const traverseBookmarks = (bookmarks) => {
