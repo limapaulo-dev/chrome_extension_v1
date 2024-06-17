@@ -324,8 +324,8 @@ chrome.storage.local.get('popup', (result) => {
 	if (result.popup) {
 		const { popup } = result;
 
-		/* 	document.querySelector('#account-id').value = popup.id_input;
-		document.querySelector('#account-name').value= popup.name_input; */
+		document.querySelector('#account-id').value = popup.id_input;
+		document.querySelector('#account-name').value= popup.name_input;
 
 		document.querySelector('#filter-list-input').value = popup.filter_input;
 
