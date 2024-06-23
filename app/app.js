@@ -318,14 +318,42 @@ const push_data = () => {
 		},
 	};
 	chrome.runtime.sendMessage({ event: 'save', prefs });
+	logLocalStorageDetails();
 };
+
+function formatBytes(bytes) {
+	if (bytes === 0) return '0 Bytes';
+	const k = 1024;
+	const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function logLocalStorageDetails() {
+	// Retrieve the total size of the local storage
+	chrome.storage.local.getBytesInUse(null, function (bytesInUse) {
+		console.log('Local Storage Size: ' + formatBytes(bytesInUse));
+	});
+
+	// Retrieve all items in local storage
+	chrome.storage.local.get(null, function (items) {
+		console.log('Local Storage Contents:', items);
+
+		// Check for potential corrupted elements (null or undefined values)
+		for (let key in items) {
+			if (items[key] === null || items[key] === undefined) {
+				console.warn('Corrupted element found:', key, items[key]);
+			}
+		}
+	});
+}
 
 chrome.storage.local.get('popup', (result) => {
 	if (result.popup) {
 		const { popup } = result;
 
 		document.querySelector('#account-id').value = popup.id_input;
-		document.querySelector('#account-name').value= popup.name_input;
+		document.querySelector('#account-name').value = popup.name_input;
 
 		document.querySelector('#filter-list-input').value = popup.filter_input;
 
