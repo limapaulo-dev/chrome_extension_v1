@@ -136,7 +136,23 @@ const impersonate_event = (btn) => {
 const delete_event = (btn) => {
 	btn.addEventListener('click', () => {
 		btn.parentElement.remove();
+		sort_account_list();
 		push_data();
+	});
+};
+
+const sort_direction = () => {
+	liArray.sort(function (a, b) {
+		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
+		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+
+		let direction = document.querySelector('.sort_direction').value;
+
+		if (direction == 'ascending') {
+			return numA - numB;
+		} else {
+			return numB - numA;
+		}
 	});
 };
 
@@ -145,10 +161,23 @@ const sort_account_list = () => {
 	let liArray = Array.from(ul.querySelectorAll('li'));
 
 	liArray.sort(function (a, b) {
-		let aClass = a.className;
-		let bClass = b.className;
-		return aClass.localeCompare(bClass);
+		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
+		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+		return numB - numA;
 	});
+
+	ul.innerHTML = '';
+	liArray.forEach((li) => {
+		ul.appendChild(li);
+	});
+	push_data();
+};
+
+const sort_recent_list = () => {
+	let ul = document.querySelector('.accounts-list-group');
+	let liArray = Array.from(ul.querySelectorAll('li'));
+
+	liArray.slice().reverse();
 
 	ul.innerHTML = '';
 	liArray.forEach((li) => {
@@ -165,14 +194,14 @@ const pin_event = (btn) => {
 
 		if (btn.classList.contains('pinned-down')) {
 			li.classList.remove('pinned-down');
-			ul_main.classList.add('odd');
-			ul_main.classList.remove('even');
+			/* 			ul_main.classList.add('odd');
+			ul_main.classList.remove('even'); */
 			btn.classList.remove('pinned-down');
 			ul_main.appendChild(li);
 		} else {
 			li.classList.add('pinned-down');
-			ul_main.classList.remove('odd');
-			ul_main.classList.add('even');
+			/* 			ul_main.classList.remove('odd'); */
+			/* 			ul_main.classList.add('even'); */
 			btn.classList.add('pinned-down');
 			ul_pinned.appendChild(li);
 		}
@@ -227,7 +256,8 @@ const createAcc = (type, list, account_id, account_name) => {
 	if (type == 'recent-used') {
 		new_account.classList.add(`account`);
 	} else {
-		new_account.classList.add(`account-${list.children.length + 1}`);
+		let pinned_len = document.querySelector('.accounts-pinned-group').children.length;
+		new_account.classList.add(`account-${list.children.length + pinned_len + 1}`);
 	}
 
 	new_account_id.textContent = account_id;
@@ -241,6 +271,7 @@ const createAcc = (type, list, account_id, account_name) => {
 	createFeatures(type, new_account);
 
 	list.appendChild(new_account);
+	sort_account_list();
 	push_data();
 };
 
@@ -403,6 +434,24 @@ const traverseBookmarks = (bookmarks) => {
 		}
 	});
 };
+
+const odd_li_background = () => {
+	const li_list = document.querySelectorAll('li');
+	let visibleIndex = 0;
+
+	li_list.forEach((li) => {
+		if (li.offsetParent !== null) {
+			if (visibleIndex % 2 === 0) {
+				li.classList.add('odd');
+			} else {
+				li.classList.remove('odd');
+			}
+			visibleIndex++;
+		}
+	});
+};
+
+odd_li_background();
 
 chrome.storage.local.get('hasRun', (result) => {
 	if (!result.hasRun) {
