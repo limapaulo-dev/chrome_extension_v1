@@ -136,7 +136,7 @@ body {
 button,
 input,
 .header-section,
-.last-used,
+.last-impersonated,
 .accounts-list {
 	border: rgb(230, 230, 230) 1px solid;
 	border-radius: 3px;
@@ -246,11 +246,11 @@ button,
 }
 
 .accounts-list button,
-.last-used button {
+.last-impersonated button {
 	border: 0;
 }
 
-.last-used,
+.last-impersonated,
 .accounts-list {
 	background-color: white;
 }
@@ -282,23 +282,6 @@ li,
 	gap: 3px;
 	width: 100%;
 }
-
-li.odd,
-li.odd button {
-	background-color: rgb(240, 240, 240);
-}
-
-/* .odd li:nth-child(odd),
-.odd li:nth-child(odd) button,
-.even li:nth-child(even),
-.even li:nth-child(even) button {
-	background-color: rgb(240, 240, 240);
-}
-
-.odd li:nth-child(odd) button:hover,
-.even li:nth-child(odd) button:hover {
-	background-color: rgb(200, 200, 200);
-} */
 
 li.pinned-down,
 li.pinned-down button {

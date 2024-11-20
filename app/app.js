@@ -63,8 +63,8 @@ document.querySelector('.form-set-account').addEventListener('submit', function 
 	let type = 'main-list';
 
 	if (event.submitter.id == 'btn-impersonate') {
-		list = document.querySelector('.last-used-group');
-		type = 'recent-used';
+		list = document.querySelector('.last-impersonated-group');
+		type = 'last-impersonated';
 	}
 
 	createAcc(type, list, account_id, account_name);
@@ -75,7 +75,7 @@ document.querySelector('.form-set-account').addEventListener('submit', function 
 });
 
 const last_used_cycle = (list) => {
-	if (list.children.length > 5) {
+	if (list.children.length > 4) {
 		let first_born = list.firstElementChild;
 		list.removeChild(first_born);
 	}
@@ -89,20 +89,15 @@ const impersonate = (account_id, list) => {
 
 	let impersonator_URL = `https://app.vwo.com/access?accountId=${account_id}`;
 
-	chrome.tabs.query({}, (tabs) => {
+	// Query tabs only in the active window
+	chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
 		let foundTab = false;
 
 		tabs.forEach((tab) => {
 			if (tab.url.includes('app.vwo.com') && !foundTab) {
 				foundTab = true;
 
-				chrome.tabs.update(tab.id, { url: impersonator_URL, active: true }, (updatedTab) => {
-					chrome.windows.get(updatedTab.windowId, (window) => {
-						if (window.state === 'minimized') {
-							chrome.windows.update(window.id, { focused: true, state: 'normal' }, () => {});
-						}
-					});
-				});
+				chrome.tabs.update(tab.id, { url: impersonator_URL, active: true });
 			}
 		});
 
@@ -123,8 +118,8 @@ const impersonate_event = (btn) => {
 		account_id = account_id.innerHTML.trim();
 		account_name = account_name.innerHTML.trim();
 
-		list = document.querySelector('.last-used-group');
-		type = 'recent-used';
+		list = document.querySelector('.last-impersonated-group');
+		type = 'last-impersonated';
 
 		createAcc(type, list, account_id, account_name);
 
@@ -173,7 +168,7 @@ const sort_account_list = () => {
 	push_data();
 };
 
-const sort_recent_list = () => {
+const sort_last_impersonated_list = () => {
 	let ul = document.querySelector('.accounts-list-group');
 	let liArray = Array.from(ul.querySelectorAll('li'));
 
@@ -253,8 +248,9 @@ const createAcc = (type, list, account_id, account_name) => {
 	let new_account_id = document.createElement('p');
 	let new_account_name = document.createElement('p');
 
-	if (type == 'recent-used') {
-		new_account.classList.add(`account`);
+	if (type == 'last-impersonated') {
+		last_used_cycle(list);
+		new_account.classList.add(`account-${list.children.length + 1}`);
 	} else {
 		let pinned_len = document.querySelector('.accounts-pinned-group').children.length;
 		new_account.classList.add(`account-${list.children.length + pinned_len + 1}`);
@@ -294,8 +290,8 @@ const push_list = (list) => {
 const pull_account = (li, ul) => {
 	let type = 'main-list';
 
-	if (ul.classList.contains('last-used-group')) {
-		type = 'recent-used';
+	if (ul.classList.contains('last-impersonated-group')) {
+		type = 'last-impersonated';
 	}
 
 	let account = document.createElement('li');
@@ -326,11 +322,13 @@ const push_data = () => {
 	const name_input = document.querySelector('#account-name').value;
 	const filter_input = document.querySelector('#filter-list-input').value;
 
-	const recently_impersonated = document.querySelectorAll('.last-used-group li');
+	const last_impersonated = document.querySelectorAll('.last-impersonated-group li');
 	const pinned_group = document.querySelectorAll('.accounts-pinned-group li');
 	const list_group = document.querySelectorAll('.accounts-list-group li');
 
-	const recently_impersonated_dropdown = document.querySelector('.last-used button.dropdown').classList.contains('up');
+	const last_impersonated_dropdown = document
+		.querySelector('.last-impersonated button.dropdown')
+		.classList.contains('up');
 	const list_group_dropdown = document.querySelector('.accounts-list button.dropdown').classList.contains('up');
 
 	const prefs = {
@@ -338,11 +336,11 @@ const push_data = () => {
 			id_input: id_input,
 			name_input: name_input,
 
-			recently_impersonated: push_list(recently_impersonated),
+			last_impersonated: push_list(last_impersonated),
 			pinned_group: push_list(pinned_group),
 			list_group: push_list(list_group),
 
-			recently_impersonated_dropdown: recently_impersonated_dropdown,
+			last_impersonated_dropdown: last_impersonated_dropdown,
 			list_group_dropdown: list_group_dropdown,
 
 			filter_input: filter_input,
@@ -379,7 +377,7 @@ function logLocalStorageDetails() {
 	});
 }
 
-chrome.storage.local.get('popup', (result) => {
+chrome.storage.sync.get('popup', (result) => {
 	if (result.popup) {
 		const { popup } = result;
 
@@ -388,12 +386,12 @@ chrome.storage.local.get('popup', (result) => {
 
 		document.querySelector('#filter-list-input').value = popup.filter_input;
 
-		const recently_impersonated_ul = document.querySelector('.last-used-group');
+		const last_impersonated_ul = document.querySelector('.last-impersonated-group');
 		const pinned_group_ul = document.querySelector('.accounts-pinned-group');
 		const list_group_ul = document.querySelector('.accounts-list-group');
 
-		popup.recently_impersonated.forEach((li) => {
-			pull_account(li, recently_impersonated_ul);
+		popup.last_impersonated.forEach((li) => {
+			pull_account(li, last_impersonated_ul);
 		});
 		popup.pinned_group.forEach((li) => {
 			pull_account(li, pinned_group_ul);
@@ -403,8 +401,8 @@ chrome.storage.local.get('popup', (result) => {
 		});
 
 		if (popup.recently_impersonated_dropdown == true) {
-			document.querySelector('.last-used button.dropdown').classList.add('up');
-			document.querySelector('.last-used-group').style.display = 'none';
+			document.querySelector('.last-impersonated button.dropdown').classList.add('up');
+			document.querySelector('.last-impersonated-group').style.display = 'none';
 		}
 
 		if (popup.list_group_dropdown == true) {
@@ -428,36 +426,21 @@ const traverseBookmarks = (bookmarks) => {
 			let account_id = decodeURIComponent(bookmark.url).match(regex)[1];
 			createAcc('main-list', list_group_ul, account_id, bookmark.title);
 		}
-
 		if (bookmark.children) {
 			traverseBookmarks(bookmark.children);
 		}
 	});
 };
 
-const odd_li_background = () => {
-	const li_list = document.querySelectorAll('li');
-	let visibleIndex = 0;
-
-	li_list.forEach((li) => {
-		if (li.offsetParent !== null) {
-			if (visibleIndex % 2 === 0) {
-				li.classList.add('odd');
-			} else {
-				li.classList.remove('odd');
-			}
-			visibleIndex++;
-		}
-	});
-};
-
-odd_li_background();
-
-chrome.storage.local.get('hasRun', (result) => {
-	if (!result.hasRun) {
+chrome.storage.sync.get('popup', (result) => {
+	if (!result.popup) {
+		result.popup = {};
+	}
+	if (!result.popup.bookmarks_imported) {
 		chrome.bookmarks.getTree((bookmarkTreeNodes) => {
 			traverseBookmarks(bookmarkTreeNodes);
-			chrome.storage.local.set({ hasRun: true }, () => {});
+			result.popup.bookmarks_imported = true;
+			chrome.storage.sync.set({ popup: result.popup }, () => {});
 		});
 	}
 });
