@@ -12,6 +12,15 @@ document.querySelectorAll('.btn-impersonate').forEach((btn) => {
 	btn_event_listener(btn);
 });
 
+/* input.addEventListener('input', () => {
+	// Remove all non-numeric characters except commas and periods
+	input.value = input.value.replace(/[^\d,]/g, '');
+
+	// Optional: Add auto-formatting for commas (e.g., for thousand separators)
+	// Example: 123456 -> 123,456
+	// input.value = input.value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}); */
+
 document.getElementById('filter-list-input').addEventListener('keyup', function () {
 	let filterValue = this.value.toLowerCase().trim();
 	let filterWords = filterValue.split(/\s+/);
@@ -35,7 +44,7 @@ document.querySelectorAll('.dropdown').forEach((dropdown) => {
 		let parent = this.parentElement;
 		let gran_parent = parent.parentElement;
 
-		let thisList = gran_parent.querySelectorAll('ul');
+		let thisList = gran_parent.querySelectorAll('.lists-groups, .last-impersonated-groups');
 
 		thisList.forEach((list) => {
 			if ((list.style.display === 'block' || list.style.display === '') && list.children.length > 0) {
@@ -76,8 +85,9 @@ document.querySelector('.form-set-account').addEventListener('submit', function 
 
 const last_used_cycle = (list) => {
 	if (list.children.length > 4) {
-		let first_born = list.firstElementChild;
+		let first_born = list.lastElementChild;
 		list.removeChild(first_born);
+		sort_accounts(list);
 	}
 	push_data();
 };
@@ -89,7 +99,6 @@ const impersonate = (account_id, list) => {
 
 	let impersonator_URL = `https://app.vwo.com/access?accountId=${account_id}`;
 
-	// Query tabs only in the active window
 	chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
 		let foundTab = false;
 
@@ -104,9 +113,7 @@ const impersonate = (account_id, list) => {
 		if (!foundTab) {
 			chrome.tabs.create({ url: impersonator_URL });
 		}
-	});
-
-	last_used_cycle(list);
+	});	
 };
 
 const impersonate_event = (btn) => {
@@ -136,49 +143,44 @@ const delete_event = (btn) => {
 	});
 };
 
-const sort_direction = () => {
-	liArray.sort(function (a, b) {
-		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
-		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+const sort_last_impersonated_list = () => {
+	let ul = document.querySelector('.last-impersonated-group');
+	const liArray = Array.from(ul.children);
 
-		let direction = document.querySelector('.sort_direction').value;
+	liArray.reverse();
 
-		if (direction == 'ascending') {
-			return numA - numB;
-		} else {
-			return numB - numA;
-		}
-	});
+	liArray.forEach(li => ul.appendChild(li));
+};
+
+const sort_accounts = (list) => {
+    let liArray = Array.from(list.querySelectorAll('li'));
+
+    liArray.sort(function (a, b) {
+        const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
+        const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+        return numB - numA; // Descending order
+    });
+
+    liArray.forEach((li, index) => {
+        li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
+        list.appendChild(li); // Moves the <li> to the correct position
+    });
 };
 
 const sort_account_list = () => {
-	let ul = document.querySelector('.accounts-list-group');
-	let liArray = Array.from(ul.querySelectorAll('li'));
+    let ul = document.querySelector('.accounts-list-group');
+    let liArray = Array.from(ul.querySelectorAll('li'));
 
-	liArray.sort(function (a, b) {
-		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
-		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
-		return numB - numA;
-	});
+    liArray.sort(function (a, b) {
+        const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
+        const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+        return numB - numA; // Descending order
+    });
 
-	ul.innerHTML = '';
-	liArray.forEach((li) => {
-		ul.appendChild(li);
-	});
-	push_data();
-};
-
-const sort_last_impersonated_list = () => {
-	let ul = document.querySelector('.accounts-list-group');
-	let liArray = Array.from(ul.querySelectorAll('li'));
-
-	liArray.slice().reverse();
-
-	ul.innerHTML = '';
-	liArray.forEach((li) => {
-		ul.appendChild(li);
-	});
-	push_data();
+    liArray.forEach((li, index) => {
+        li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
+        ul.appendChild(li); // Moves the <li> to the correct position
+    });
 };
 
 const pin_event = (btn) => {
@@ -189,14 +191,10 @@ const pin_event = (btn) => {
 
 		if (btn.classList.contains('pinned-down')) {
 			li.classList.remove('pinned-down');
-			/* 			ul_main.classList.add('odd');
-			ul_main.classList.remove('even'); */
 			btn.classList.remove('pinned-down');
 			ul_main.appendChild(li);
 		} else {
 			li.classList.add('pinned-down');
-			/* 			ul_main.classList.remove('odd'); */
-			/* 			ul_main.classList.add('even'); */
 			btn.classList.add('pinned-down');
 			ul_pinned.appendChild(li);
 		}
@@ -267,7 +265,8 @@ const createAcc = (type, list, account_id, account_name) => {
 	createFeatures(type, new_account);
 
 	list.appendChild(new_account);
-	sort_account_list();
+
+	sort_accounts(list);
 	push_data();
 };
 
@@ -360,13 +359,13 @@ function formatBytes(bytes) {
 
 function logLocalStorageDetails() {
 	// Retrieve the total size of the local storage
-	chrome.storage.local.getBytesInUse(null, function (bytesInUse) {
-		console.log('Local Storage Size: ' + formatBytes(bytesInUse));
+	chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
+		console.log('Sync Storage Size: ' + formatBytes(bytesInUse));
 	});
 
 	// Retrieve all items in local storage
-	chrome.storage.local.get(null, function (items) {
-		console.log('Local Storage Contents:', items);
+	chrome.storage.sync.get(null, function (items) {
+		console.log('Sync Storage Contents:', items);
 
 		// Check for potential corrupted elements (null or undefined values)
 		for (let key in items) {
@@ -412,7 +411,6 @@ chrome.storage.sync.get('popup', (result) => {
 				ul.style.display = 'none';
 			});
 		}
-
 		push_data();
 	}
 });
@@ -432,15 +430,19 @@ const traverseBookmarks = (bookmarks) => {
 	});
 };
 
-chrome.storage.sync.get('popup', (result) => {
-	if (!result.popup) {
-		result.popup = {};
+chrome.storage.sync.get('bookmarks_import', (result) => {
+	if (!result.bookmarks_import) {
+		result.bookmarks_import = {};
 	}
-	if (!result.popup.bookmarks_imported) {
+	if (!result.bookmarks_import.bookmarks_imported) {
 		chrome.bookmarks.getTree((bookmarkTreeNodes) => {
 			traverseBookmarks(bookmarkTreeNodes);
-			result.popup.bookmarks_imported = true;
-			chrome.storage.sync.set({ popup: result.popup }, () => {});
+			result.bookmarks_import.bookmarks_imported = true;
+			chrome.storage.sync.set({ bookmarks_import: result.bookmarks_import }, () => {});
 		});
 	}
+});
+
+window.addEventListener('blur', () => {
+    push_data();
 });

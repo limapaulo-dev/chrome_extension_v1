@@ -132,19 +132,20 @@ body {
 	overflow: hidden;
 }
 
-/* border  */
-button,
+/* border */
+.form-inputs button,
 input,
 .header-section,
 .last-impersonated,
 .accounts-list {
 	border: rgb(230, 230, 230) 1px solid;
 	border-radius: 3px;
+	background-color: white;
 }
 
 .header-section {
 	background-color: white;
-	margin-bottom: 5px;
+	margin-bottom: 3px;
 }
 
 h1 {
@@ -180,26 +181,28 @@ table {
 }
 
 .main-section {
-	margin: 15px;
+	margin: 10px;
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
 }
 
-section.filter-bar {
-	margin-bottom: 5px;
-}
-
 section.accounts-list {
 	max-height: 280px;
 	overflow: hidden;
+
+	max-height: 280px; /* Ensure the parent has a fixed height */
+	overflow: hidden; /* Prevent overflow on the parent */
+	display: flex;
+	flex-direction: column; /* Stack child elements vertically */
 }
 
 .lists-groups {
 	max-height: inherit;
-	overflow: scroll;
+	overflow-y: auto;
 	overflow-x: hidden;
 	scrollbar-width: none;
+	flex-grow: 1;
 }
 
 .lists-groups:hover {
@@ -227,9 +230,13 @@ input:focus {
 	outline: rgb(215, 215, 215) 1px solid;
 }
 
+.form-inputs button {
+	background-color: white;
+}
+
 button {
 	font-size: 16px;
-	background-color: white;
+	background-color: inherit;
 }
 
 button:hover {
@@ -283,6 +290,16 @@ li,
 	width: 100%;
 }
 
+li:hover {
+	background-color: rgb(236, 236, 236);
+}
+li.pinned-down:hover {
+	background-color: rgb(172, 194, 217);
+}
+li.pinned-down:hover button{
+	background-color: rgb(172, 194, 217);
+}
+
 li.pinned-down,
 li.pinned-down button {
 	background-color: rgb(184, 207, 231);
@@ -291,6 +308,7 @@ li.pinned-down button {
 li.pinned-down button:hover {
 	background-color: rgb(144, 168, 193);
 }
+
 
 .lists-ids,
 .list-id,
