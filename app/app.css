@@ -83,6 +83,7 @@ summary,
 time,
 mark,
 audio,
+button,
 video {
 	margin: 0;
 	padding: 0;
@@ -147,6 +148,17 @@ input,
 	background-color: white;
 	margin-bottom: 3px;
 }
+
+.header-section button {
+	margin-bottom: auto;
+	opacity: 0.5;
+}
+
+.header-section button:hover {
+	opacity: 1;
+}
+
+
 
 h1 {
 	font-size: 20px;
@@ -239,7 +251,7 @@ button {
 	background-color: inherit;
 }
 
-button:hover {
+button:hover:not(.header-section button) {
 	background-color: rgb(200, 200, 200);
 }
 
@@ -296,7 +308,7 @@ li:hover {
 li.pinned-down:hover {
 	background-color: rgb(172, 194, 217);
 }
-li.pinned-down:hover button{
+li.pinned-down:hover button {
 	background-color: rgb(172, 194, 217);
 }
 
@@ -308,7 +320,6 @@ li.pinned-down button {
 li.pinned-down button:hover {
 	background-color: rgb(144, 168, 193);
 }
-
 
 .lists-ids,
 .list-id,

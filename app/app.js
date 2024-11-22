@@ -1,10 +1,8 @@
-const btn_impersonate = document.querySelector('#btn-impersonate');
-
-btn_impersonate.addEventListener('mouseover', function () {
+document.querySelector('#btn-impersonate').addEventListener('mouseover', function () {
 	document.querySelector('#account-name').removeAttribute('required');
 });
 
-btn_impersonate.addEventListener('mouseout', function () {
+document.querySelector('#btn-impersonate').addEventListener('mouseout', function () {
 	document.querySelector('#account-name').setAttribute('required', '');
 });
 
@@ -12,14 +10,9 @@ document.querySelectorAll('.btn-impersonate').forEach((btn) => {
 	btn_event_listener(btn);
 });
 
-/* input.addEventListener('input', () => {
-	// Remove all non-numeric characters except commas and periods
-	input.value = input.value.replace(/[^\d,]/g, '');
-
-	// Optional: Add auto-formatting for commas (e.g., for thousand separators)
-	// Example: 123456 -> 123,456
-	// input.value = input.value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}); */
+document.getElementById('account-id').addEventListener('input', (event) => {
+	event.target.value = event.target.value.replace(/[^\d]/g, '');
+});
 
 document.getElementById('filter-list-input').addEventListener('keyup', function () {
 	let filterValue = this.value.toLowerCase().trim();
@@ -89,7 +82,6 @@ const last_used_cycle = (list) => {
 		list.removeChild(first_born);
 		sort_accounts(list);
 	}
-	push_data();
 };
 
 const impersonate = (account_id, list) => {
@@ -97,23 +89,28 @@ const impersonate = (account_id, list) => {
 		account_id = account_id.innerHTML;
 	}
 
-	let impersonator_URL = `https://app.vwo.com/access?accountId=${account_id}`;
+	const baseUrl = 'https://app.vwo.com';
+	const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
+	const ssoUrl = `${baseUrl}/#/sso`;
 
-	chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
-		let foundTab = false;
+	chrome.cookies.get({ url: baseUrl, name: 'vwo_logged_in' }, (cookie) => {
+		const impersonator_URL = cookie ? loggedInUrl : ssoUrl;
 
-		tabs.forEach((tab) => {
-			if (tab.url.includes('app.vwo.com') && !foundTab) {
-				foundTab = true;
+		chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
+			let foundTab = false;
 
-				chrome.tabs.update(tab.id, { url: impersonator_URL, active: true });
+			tabs.forEach((tab) => {
+				if (tab.url.includes(baseUrl) && !foundTab) {
+					foundTab = true;
+					chrome.tabs.update(tab.id, { url: impersonator_URL, active: true });
+				}
+			});
+
+			if (!foundTab) {
+				chrome.tabs.create({ url: impersonator_URL });
 			}
 		});
-
-		if (!foundTab) {
-			chrome.tabs.create({ url: impersonator_URL });
-		}
-	});	
+	});
 };
 
 const impersonate_event = (btn) => {
@@ -149,38 +146,38 @@ const sort_last_impersonated_list = () => {
 
 	liArray.reverse();
 
-	liArray.forEach(li => ul.appendChild(li));
+	liArray.forEach((li) => ul.appendChild(li));
 };
 
 const sort_accounts = (list) => {
-    let liArray = Array.from(list.querySelectorAll('li'));
+	let liArray = Array.from(list.querySelectorAll('li'));
 
-    liArray.sort(function (a, b) {
-        const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
-        const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
-        return numB - numA; // Descending order
-    });
+	liArray.sort(function (a, b) {
+		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
+		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+		return numB - numA;
+	});
 
-    liArray.forEach((li, index) => {
-        li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
-        list.appendChild(li); // Moves the <li> to the correct position
-    });
+	liArray.forEach((li, index) => {
+		li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
+		list.appendChild(li);
+	});
 };
 
 const sort_account_list = () => {
-    let ul = document.querySelector('.accounts-list-group');
-    let liArray = Array.from(ul.querySelectorAll('li'));
+	let ul = document.querySelector('.accounts-list-group');
+	let liArray = Array.from(ul.querySelectorAll('li'));
 
-    liArray.sort(function (a, b) {
-        const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
-        const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
-        return numB - numA; // Descending order
-    });
+	liArray.sort(function (a, b) {
+		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
+		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+		return numB - numA;
+	});
 
-    liArray.forEach((li, index) => {
-        li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
-        ul.appendChild(li); // Moves the <li> to the correct position
-    });
+	liArray.forEach((li, index) => {
+		li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
+		ul.appendChild(li);
+	});
 };
 
 const pin_event = (btn) => {
@@ -203,15 +200,35 @@ const pin_event = (btn) => {
 	});
 };
 
-const is_account_new = (type, list, account_id) => {
+const is_account_new = (type, account_id) => {
 	let is_account_new = true;
 
-	list.querySelectorAll('li').forEach((li) => {
+	let list = document.querySelectorAll('.accounts-list li');
+
+	if (type == 'last-impersonated') {
+		list = document.querySelectorAll('.last-impersonated li');
+	}
+
+	list.forEach((li) => {
 		let list_account = li.querySelector('.account-id').textContent;
 		if (list_account == account_id) is_account_new = false;
 	});
 
 	return is_account_new;
+};
+
+const account_exists_filter = (type, account_id) => {
+	if (type == 'last-impersonated') {
+		return;
+	}
+
+	const filterInput = document.querySelector('#filter-list-input');
+	if (filterInput) {
+		filterInput.value = account_id;
+
+		const keyupEvent = new KeyboardEvent('keyup', { bubbles: true, cancelable: true });
+		filterInput.dispatchEvent(keyupEvent);
+	}
 };
 
 const createFeatures = (type, new_account) => {
@@ -238,7 +255,8 @@ const createFeatures = (type, new_account) => {
 };
 
 const createAcc = (type, list, account_id, account_name) => {
-	if (!is_account_new(type, list, account_id)) {
+	if (!is_account_new(type, account_id)) {
+		account_exists_filter(type, account_id);
 		return;
 	}
 
@@ -349,32 +367,29 @@ const push_data = () => {
 	logLocalStorageDetails();
 };
 
-function formatBytes(bytes) {
+const formatBytes = (bytes) => {
 	if (bytes === 0) return '0 Bytes';
 	const k = 1024;
 	const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
 	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
+};
 
-function logLocalStorageDetails() {
-	// Retrieve the total size of the local storage
+const logLocalStorageDetails = () => {
 	chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
 		console.log('Sync Storage Size: ' + formatBytes(bytesInUse));
 	});
 
-	// Retrieve all items in local storage
 	chrome.storage.sync.get(null, function (items) {
 		console.log('Sync Storage Contents:', items);
 
-		// Check for potential corrupted elements (null or undefined values)
 		for (let key in items) {
 			if (items[key] === null || items[key] === undefined) {
 				console.warn('Corrupted element found:', key, items[key]);
 			}
 		}
 	});
-}
+};
 
 chrome.storage.sync.get('popup', (result) => {
 	if (result.popup) {
@@ -444,5 +459,6 @@ chrome.storage.sync.get('bookmarks_import', (result) => {
 });
 
 window.addEventListener('blur', () => {
-    push_data();
+	console.log('blur save');
+	push_data();
 });
