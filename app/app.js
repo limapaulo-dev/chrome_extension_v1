@@ -84,7 +84,43 @@ const last_used_cycle = (list) => {
 	}
 };
 
-const impersonate = (account_id, list) => {
+const impersonate = async (account_id, list) => {
+    if (typeof account_id !== 'string') {
+        account_id = account_id.innerHTML;
+    }
+
+    const baseUrl = 'https://app.vwo.com';
+    const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
+    const ssoUrl = `${baseUrl}/#/sso`;
+
+    try {
+        // Check the response from loggedInUrl
+        const response = await fetch(loggedInUrl, { method: 'GET', credentials: 'include' });
+
+        // Determine the URL based on the response status
+        const impersonator_URL = response.status === 401 ? ssoUrl : loggedInUrl;
+
+        // Find and update/create the appropriate tab
+        chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
+            let foundTab = false;
+
+            tabs.forEach((tab) => {
+                if (tab.url.includes(baseUrl) && !foundTab) {
+                    foundTab = true;
+                    chrome.tabs.update(tab.id, { url: impersonator_URL, active: true });
+                }
+            });
+
+            if (!foundTab) {
+                chrome.tabs.create({ url: impersonator_URL });
+            }
+        });
+    } catch (error) {
+        chrome.tabs.create({ url: ssoUrl });
+    }
+};
+
+/* const impersonate = (account_id, list) => {
 	if (typeof account_id !== 'string') {
 		account_id = account_id.innerHTML;
 	}
@@ -111,7 +147,7 @@ const impersonate = (account_id, list) => {
 			}
 		});
 	});
-};
+}; */
 
 const impersonate_event = (btn) => {
 	btn.addEventListener('click', function (event) {
@@ -459,6 +495,5 @@ chrome.storage.sync.get('bookmarks_import', (result) => {
 });
 
 window.addEventListener('blur', () => {
-	console.log('blur save');
 	push_data();
 });
