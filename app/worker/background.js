@@ -7,6 +7,15 @@ chrome.runtime.onMessage.addListener((data) => {
 		case 'load':
 			break;
 
+		case 'login':
+			chrome.notifications.create({
+				type: 'basic',
+				iconUrl: '../../assets/vwo/vwo-icon-256.png',
+				title: 'Login Required',
+				message: 'Please log in with your VWO account first.',
+			});
+			break;
+
 		default:
 			break;
 	}

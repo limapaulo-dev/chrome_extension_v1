@@ -52,7 +52,7 @@ document.querySelectorAll('.dropdown').forEach((dropdown) => {
 	});
 });
 
-document.querySelector('.form-set-account').addEventListener('submit', function (event) {
+document.querySelector('.form-set-account').addEventListener('submit', async (event) => {
 	event.preventDefault();
 
 	let account_id = document.querySelector('#account-id');
@@ -67,13 +67,14 @@ document.querySelector('.form-set-account').addEventListener('submit', function 
 	if (event.submitter.id == 'btn-impersonate') {
 		list = document.querySelector('.last-impersonated-group');
 		type = 'last-impersonated';
+		try {
+			await impersonate(account_id);
+		} catch (error) {
+			return;
+		}
 	}
 
 	createAcc(type, list, account_id, account_name);
-
-	if (event.submitter.id == 'btn-impersonate') {
-		impersonate(account_id, list);
-	}
 });
 
 const last_used_cycle = (list) => {
@@ -84,47 +85,24 @@ const last_used_cycle = (list) => {
 	}
 };
 
-const impersonate = async (account_id, list) => {
-    if (typeof account_id !== 'string') {
-        account_id = account_id.innerHTML;
-    }
+const check_tabs = (baseUrl, finalUrl) => {
+	chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
+		let foundTab = false;
 
-    const baseUrl = 'https://app.vwo.com';
-    const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
-    const ssoUrl = `${baseUrl}/#/sso`;
+		tabs.forEach((tab) => {
+			if (tab.url.includes(baseUrl) && !foundTab) {
+				foundTab = true;
+				chrome.tabs.update(tab.id, { url: finalUrl, active: true });
+			}
+		});
 
-    try {
-        // Check the response from loggedInUrl
-        const response = await fetch(loggedInUrl, { method: 'GET', credentials: 'include' });
-
-        // Determine the URL based on the response status
-        const impersonator_URL = response.status === 401 ? ssoUrl : loggedInUrl;
-
-        // Find and update/create the appropriate tab
-        chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
-            let foundTab = false;
-
-            tabs.forEach((tab) => {
-                if (tab.url.includes(baseUrl) && !foundTab) {
-                    foundTab = true;
-                    chrome.tabs.update(tab.id, { url: impersonator_URL, active: true });
-                }
-            });
-
-            if (!foundTab) {
-                chrome.tabs.create({ url: impersonator_URL });
-            }
-        });
-    } catch (error) {
-        chrome.tabs.create({ url: ssoUrl });
-    }
+		if (!foundTab) {
+			chrome.tabs.create({ url: finalUrl });
+		}
+	});
 };
 
-/* const impersonate = (account_id, list) => {
-	if (typeof account_id !== 'string') {
-		account_id = account_id.innerHTML;
-	}
-
+const impersonate = (account_id) => {
 	const baseUrl = 'https://app.vwo.com';
 	const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
 	const ssoUrl = `${baseUrl}/#/sso`;
@@ -132,26 +110,19 @@ const impersonate = async (account_id, list) => {
 	chrome.cookies.get({ url: baseUrl, name: 'vwo_logged_in' }, (cookie) => {
 		const impersonator_URL = cookie ? loggedInUrl : ssoUrl;
 
-		chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
-			let foundTab = false;
+		if (!cookie) {
+			chrome.runtime.sendMessage({ event: 'login' });
+			check_tabs(baseUrl, impersonator_URL);
+			return false;
+		}
 
-			tabs.forEach((tab) => {
-				if (tab.url.includes(baseUrl) && !foundTab) {
-					foundTab = true;
-					chrome.tabs.update(tab.id, { url: impersonator_URL, active: true });
-				}
-			});
-
-			if (!foundTab) {
-				chrome.tabs.create({ url: impersonator_URL });
-			}
-		});
+		check_tabs(baseUrl, impersonator_URL);
 	});
-}; */
+};
 
 const impersonate_event = (btn) => {
-	btn.addEventListener('click', function (event) {
-		let account = this.parentElement;
+	btn.addEventListener('click', async (event) => {
+		let account = event.target.parentElement;
 		let account_id = account.querySelector('.list-id');
 		let account_name = account.querySelector('.list-name');
 
@@ -161,9 +132,11 @@ const impersonate_event = (btn) => {
 		list = document.querySelector('.last-impersonated-group');
 		type = 'last-impersonated';
 
-		createAcc(type, list, account_id, account_name);
+		if (!impersonate(account_id)) {
+			return;
+		}
 
-		impersonate(account_id, list);
+		createAcc(type, list, account_id, account_name);
 		push_data();
 	});
 };
