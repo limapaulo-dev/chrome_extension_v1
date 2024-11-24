@@ -11,7 +11,7 @@ document.querySelectorAll('.btn-impersonate').forEach((btn) => {
 });
 
 document.getElementById('account-id').addEventListener('input', (event) => {
-	event.target.value = event.target.value.replace(/[^\d]/g, '');
+	event.target.value = event.target.value.replace(/^0+/, '').replace(/[^\d]/g, '');
 });
 
 document.getElementById('filter-list-input').addEventListener('keyup', function () {
@@ -128,13 +128,18 @@ const impersonate_event = (btn) => {
 		const account_name = account.querySelector('.list-name').innerHTML.trim();
 
 		const list = document.querySelector('.last-impersonated-group');
-		const type = 'last-impersonated';
 
 		if (!(await impersonate(account_id))) {
 			return;
 		}
 
-		createAcc(type, list, account_id, account_name);
+		const accountData = {
+			list: list,
+			account_id: account_id,
+			account_name: account_name,
+		};
+
+		createAcc(accountData);
 		push_data();
 	});
 };
@@ -260,6 +265,7 @@ const createFeatures = (type, new_account) => {
 };
 
 const createAcc = ({ list, account_id, account_name }) => {
+
 	const type = list.classList.contains('last-impersonated-group') ? 'last-impersonated' : 'accounts-list';
 
 	if (!is_account_new(type, account_id)) {
@@ -292,40 +298,6 @@ const createAcc = ({ list, account_id, account_name }) => {
 	sort_accounts(list);
 	push_data();
 };
-
-/* const createAcc = (type, list, account_id, account_name) => {
-	if (!is_account_new(type, account_id)) {
-		account_exists_filter(type, account_id);
-		return;
-	}
-
-	let new_account = document.createElement('li');
-	let new_account_id = document.createElement('p');
-	let new_account_name = document.createElement('p');
-
-	if (type == 'last-impersonated') {
-		last_used_cycle(list);
-		new_account.classList.add(`account-${list.children.length + 1}`);
-	} else {
-		let pinned_len = document.querySelector('.accounts-pinned-group').children.length;
-		new_account.classList.add(`account-${list.children.length + pinned_len + 1}`);
-	}
-
-	new_account_id.textContent = account_id;
-	new_account_id.classList.add('account-id', 'list-id');
-	new_account.appendChild(new_account_id);
-
-	new_account_name.textContent = account_name;
-	new_account_name.classList.add('account-name', 'list-name', 'full');
-	new_account.appendChild(new_account_name);
-
-	createFeatures(type, new_account);
-
-	list.appendChild(new_account);
-
-	sort_accounts(list);
-	push_data();
-}; */
 
 const push_list = (list) => {
 	const arr = [];
