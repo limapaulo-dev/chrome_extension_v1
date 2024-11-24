@@ -21,9 +21,9 @@ document.getElementById('filter-list-input').addEventListener('keyup', function 
 
 	items.forEach((item) => {
 		let itemText = item.textContent.toLowerCase();
-		let isMatch = filterWords.every((word) => itemText.includes(word));
+		let match = filterWords.every((word) => itemText.includes(word));
 
-		if (isMatch) {
+		if (match) {
 			item.classList.remove('hidden');
 		} else {
 			item.classList.add('hidden');
@@ -60,13 +60,18 @@ document.querySelector('.form-set-account').addEventListener('submit', async (ev
 
 	const isImpersonate = event.submitter.id === 'btn-impersonate';
 	const list = document.querySelector(isImpersonate ? '.last-impersonated-group' : '.accounts-list-group');
-	const type = isImpersonate ? 'last-impersonated' : 'main-list';
+
+	const accountData = {
+		list,
+		account_id,
+		account_name,
+	};
 
 	if (isImpersonate && !(await impersonate(account_id))) {
 		return;
 	}
 
-	createAcc(type, list, account_id, account_name);
+	createAcc(accountData);
 	push_data();
 });
 
@@ -218,7 +223,7 @@ const is_account_new = (type, account_id) => {
 };
 
 const account_exists_filter = (type, account_id) => {
-	if (type == 'last-impersonated') {
+	if (type === 'last-impersonated') {
 		return;
 	}
 
@@ -237,7 +242,7 @@ const createFeatures = (type, new_account) => {
 	impersonate_event(btn_impersonate);
 	btn_impersonate.classList.add('btn-impersonate');
 
-	if (type == 'main-list') {
+	if (type !== 'last-impersonated') {
 		let btn_delete = document.createElement('button');
 		btn_delete.textContent = '🗑';
 		btn_delete.classList.add('btn-delete');
@@ -254,7 +259,41 @@ const createFeatures = (type, new_account) => {
 	new_account.appendChild(btn_impersonate);
 };
 
-const createAcc = (type, list, account_id, account_name) => {
+const createAcc = ({ list, account_id, account_name }) => {
+	const type = list.classList.contains('last-impersonated-group') ? 'last-impersonated' : 'accounts-list';
+
+	if (!is_account_new(type, account_id)) {
+		account_exists_filter(type, account_id);
+		return;
+	}
+
+	let new_account = document.createElement('li');
+	let new_account_id = document.createElement('p');
+	let new_account_name = document.createElement('p');
+
+	if (type === 'last-impersonated') {
+		last_used_cycle(list);
+		new_account.classList.add(`account-${list.children.length + 1}`);
+	} else {
+		let pinned_len = document.querySelector('.accounts-pinned-group').children.length;
+		new_account.classList.add(`account-${list.children.length + pinned_len + 1}`);
+	}
+
+	new_account_id.textContent = account_id;
+	new_account_id.classList.add('account-id', 'list-id');
+	new_account.appendChild(new_account_id);
+	new_account_name.textContent = account_name;
+	new_account_name.classList.add('account-name', 'list-name', 'full');
+	new_account.appendChild(new_account_name);
+
+	createFeatures(type, new_account);
+	list.appendChild(new_account);
+
+	sort_accounts(list);
+	push_data();
+};
+
+/* const createAcc = (type, list, account_id, account_name) => {
 	if (!is_account_new(type, account_id)) {
 		account_exists_filter(type, account_id);
 		return;
@@ -286,7 +325,7 @@ const createAcc = (type, list, account_id, account_name) => {
 
 	sort_accounts(list);
 	push_data();
-};
+}; */
 
 const push_list = (list) => {
 	const arr = [];
@@ -305,7 +344,7 @@ const push_list = (list) => {
 };
 
 const pull_account = (li, ul) => {
-	let type = 'main-list';
+	let type = 'accounts-list-group';
 
 	if (ul.classList.contains('last-impersonated-group')) {
 		type = 'last-impersonated';
@@ -434,10 +473,17 @@ const traverseBookmarks = (bookmarks) => {
 
 	bookmarks.forEach((bookmark) => {
 		if (bookmark.url && regex.test(decodeURIComponent(bookmark.url))) {
-			let list_group_ul = document.querySelector('.accounts-list-group');
 			let account_id = decodeURIComponent(bookmark.url).match(regex)[1];
-			createAcc('main-list', list_group_ul, account_id, bookmark.title);
+			let list_group_ul = document.querySelector('.accounts-list-group');
+
+			const accountData = {
+				list: list_group_ul,
+				account_id,
+				account_name: bookmark.title,
+			};
+			createAcc(accountData);
 		}
+
 		if (bookmark.children) {
 			traverseBookmarks(bookmark.children);
 		}
