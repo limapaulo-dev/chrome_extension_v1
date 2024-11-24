@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener((data) => {
 				type: 'basic',
 				iconUrl: '../../assets/vwo/vwo-icon-256.png',
 				title: 'Login Required',
-				message: 'Please log in with your VWO account first.',
+				message: 'Please log in with your VWO account',
 			});
 			break;
 

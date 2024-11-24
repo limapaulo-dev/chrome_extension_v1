@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>VWO Impersonator</title>
 		<link rel="stylesheet" href="app.css" />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
 	</head>
 	<body>
 		<section class="main-section">
@@ -17,7 +18,14 @@
 				<form class="form-set-account">
 					<div class="form-inputs">
 						<input class="form-id" type="number" id="account-id" placeholder="Account ID" min="1" required />
-						<input class="form-name full" type="text" placeholder="Account Name" id="account-name" title="Required when saving" required />
+						<input
+							class="form-name full"
+							type="text"
+							placeholder="Account Name"
+							id="account-name"
+							title="Required when saving"
+							required
+						/>
 						<button type="submit" id="btn-save">💾</button>
 						<button type="submit" id="btn-impersonate">🎭</button>
 					</div>
@@ -47,13 +55,7 @@
 			</section>
 		</section>
 
-		<section class="settings-modal">
-			<div class="warning-modal-content">
-				<button class="close">❌</button>
-				<h1 class="warning-icon">🤔</h1>
-				<p class="warning">Account already exists!</p>
-			</div>
-		</section>
+		<section class="settings-modal"></section>
 
 		<script src="app.js"></script>
 	</body>

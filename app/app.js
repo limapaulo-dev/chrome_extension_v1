@@ -55,26 +55,19 @@ document.querySelectorAll('.dropdown').forEach((dropdown) => {
 document.querySelector('.form-set-account').addEventListener('submit', async (event) => {
 	event.preventDefault();
 
-	let account_id = document.querySelector('#account-id');
-	let account_name = document.querySelector('#account-name');
+	const account_id = document.querySelector('#account-id').value.trim();
+	const account_name = document.querySelector('#account-name').value.trim();
 
-	account_id = account_id.value.trim();
-	account_name = account_name.value.trim();
+	const isImpersonate = event.submitter.id === 'btn-impersonate';
+	const list = document.querySelector(isImpersonate ? '.last-impersonated-group' : '.accounts-list-group');
+	const type = isImpersonate ? 'last-impersonated' : 'main-list';
 
-	let list = document.querySelector('.accounts-list-group');
-	let type = 'main-list';
-
-	if (event.submitter.id == 'btn-impersonate') {
-		list = document.querySelector('.last-impersonated-group');
-		type = 'last-impersonated';
-		try {
-			await impersonate(account_id);
-		} catch (error) {
-			return;
-		}
+	if (isImpersonate && !(await impersonate(account_id))) {
+		return;
 	}
 
 	createAcc(type, list, account_id, account_name);
+	push_data();
 });
 
 const last_used_cycle = (list) => {
@@ -103,36 +96,36 @@ const check_tabs = (baseUrl, finalUrl) => {
 };
 
 const impersonate = (account_id) => {
-	const baseUrl = 'https://app.vwo.com';
-	const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
-	const ssoUrl = `${baseUrl}/#/sso`;
+	return new Promise((resolve) => {
+		const baseUrl = 'https://app.vwo.com';
+		const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
+		const ssoUrl = `${baseUrl}/#/sso`;
 
-	chrome.cookies.get({ url: baseUrl, name: 'vwo_logged_in' }, (cookie) => {
-		const impersonator_URL = cookie ? loggedInUrl : ssoUrl;
+		chrome.cookies.get({ url: baseUrl, name: 'vwo_logged_in' }, (cookie) => {
+			const impersonator_URL = cookie ? loggedInUrl : ssoUrl;
 
-		if (!cookie) {
-			chrome.runtime.sendMessage({ event: 'login' });
-			check_tabs(baseUrl, impersonator_URL);
-			return false;
-		}
-
-		check_tabs(baseUrl, impersonator_URL);
+			if (!cookie) {
+				chrome.runtime.sendMessage({ event: 'login' });
+				check_tabs(baseUrl, impersonator_URL);
+				resolve(false);
+			} else {
+				check_tabs(baseUrl, impersonator_URL);
+				resolve(true);
+			}
+		});
 	});
 };
 
 const impersonate_event = (btn) => {
 	btn.addEventListener('click', async (event) => {
-		let account = event.target.parentElement;
-		let account_id = account.querySelector('.list-id');
-		let account_name = account.querySelector('.list-name');
+		const account = event.target.parentElement;
+		const account_id = account.querySelector('.list-id').innerHTML.trim();
+		const account_name = account.querySelector('.list-name').innerHTML.trim();
 
-		account_id = account_id.innerHTML.trim();
-		account_name = account_name.innerHTML.trim();
+		const list = document.querySelector('.last-impersonated-group');
+		const type = 'last-impersonated';
 
-		list = document.querySelector('.last-impersonated-group');
-		type = 'last-impersonated';
-
-		if (!impersonate(account_id)) {
+		if (!(await impersonate(account_id))) {
 			return;
 		}
 
@@ -152,9 +145,7 @@ const delete_event = (btn) => {
 const sort_last_impersonated_list = () => {
 	let ul = document.querySelector('.last-impersonated-group');
 	const liArray = Array.from(ul.children);
-
 	liArray.reverse();
-
 	liArray.forEach((li) => ul.appendChild(li));
 };
 
@@ -435,7 +426,6 @@ chrome.storage.sync.get('popup', (result) => {
 				ul.style.display = 'none';
 			});
 		}
-		push_data();
 	}
 });
 
