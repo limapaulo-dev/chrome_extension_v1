@@ -464,27 +464,17 @@ document.getElementById('btn-close').addEventListener('click', () => {
 });
 
 document.getElementById('btn-bookmarks').addEventListener('click', () => {
-	//First block
 	chrome.bookmarks.getTree(async (bookmarks) => {
 		traverseBookmarks(bookmarks);
 	});
-	//Second block
+
 	setTimeout(() => {
 		updateAccountInfo();
+		chrome.runtime.sendMessage({ event: 'bookmarks-imported' });
 	}, 125);
-	chrome.runtime.sendMessage({ event: 'bookmarks-imported' });
 });
 
-const getSyncInUse = () => {
-	return new Promise((resolve) => {
-		chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
-			const formattedBytes = formatBytes(bytesInUse);
-			resolve(formattedBytes); // Resolve the promise with the value
-		});
-	});
-};
-
-const updateAccountInfo = async () => {
+const updateAccountInfo = () => {
 	// Get the number of <li> elements in the accounts list
 	const accountList = document.querySelector('.accounts-list');
 	const numAccounts = accountList ? accountList.querySelectorAll('li').length : 0;
@@ -496,8 +486,12 @@ const updateAccountInfo = async () => {
 	}
 
 	// Get the size of the sync storage and update the byte span
-	const accByteElement = document.querySelector('.acc-byte');
-	accByteElement.textContent = `Sync Storage: ${await getSyncInUse()} 🔋`; // Updated format
+	chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
+		const accByteElement = document.querySelector('.acc-byte');
+		if (accByteElement) {
+			accByteElement.textContent = `Sync Storage: ${formatBytes(bytesInUse)} 🔋`; // Updated format
+		}
+	});
 };
 
 // Traverse Bookmarks and return a promise
