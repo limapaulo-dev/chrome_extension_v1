@@ -122,7 +122,7 @@ html {
 
 body {
 	margin: 0;
-	line-height: 1;
+	line-height: 1.5;
 	width: 400px;
 	max-width: 400px;
 	background-color: #f3f3f3;
@@ -137,7 +137,10 @@ body {
 input,
 .header-section,
 .last-impersonated,
-.accounts-list {
+.accounts-list,
+.status,
+.backup,
+.settings {
 	border: rgb(230, 230, 230) 1px solid;
 	border-radius: 3px;
 	background-color: white;
@@ -145,12 +148,11 @@ input,
 
 .header-section {
 	background-color: white;
-	margin-bottom: 3px;
 }
 
 .header-section button {
-	margin-bottom: auto;
 	opacity: 0.5;
+	margin-bottom: auto;
 }
 
 .header-section button:hover {
@@ -159,12 +161,6 @@ input,
 
 h1 {
 	font-size: 20px;
-}
-
-hr {
-	margin: 0;
-	margin-top: 2px;
-	width: 100%;
 }
 
 ol,
@@ -272,7 +268,8 @@ button,
 
 p.lists-ids,
 p.group-name-title,
-p.account-id {
+p.account-id,
+.settings-modal p {
 	padding-left: 5px;
 }
 
@@ -287,7 +284,6 @@ p.account-name:hover {
 	text-overflow: unset;
 	overflow-x: auto;
 	scrollbar-width: thin;
-	line-height: 1.5;
 }
 
 ul {
@@ -304,13 +300,16 @@ li,
 .form-labels,
 .filter-bar,
 .form-filter-list,
-.footer-section {
+.footer-section,
+.size-row {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	justify-content: space-between;
 	gap: 3px;
 	width: 100%;
 	white-space: nowrap;
+	background-color: white;
 }
 
 li:hover {
@@ -361,4 +360,49 @@ img.logo {
 
 .accounts-list-group.hide {
 	max-height: 0;
+}
+
+.settings-modal {
+	position: absolute;
+	background-color: #f3f3f3;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	z-index: 1000;
+	gap: 5px;
+}
+
+.settings-modal .lists-title,
+.size-row {
+	height: 25px;
+}
+
+.settings-main-section {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: auto;
+	gap: 5px;
+}
+
+span.acc-num {
+	padding-left: 5px;
+}
+
+span.acc-byte {
+	padding-right: 5px;
+}
+
+footer {
+	display: flex;
+	flex-direction: row-reverse;
+	align-items: center;
+}
+
+footer p {
+	font-size: 11px;
+	color: #949494;
+}
+
+.hidden {
+	display: none;
 }

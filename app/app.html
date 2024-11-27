@@ -12,7 +12,7 @@
 			<header class="header-section">
 				<img class="logo" src="/assets/vwo/vwo-logo-256.png" alt="" class="logo" />
 				<h1 class="full main-title">Impersonator</h1>
-				<button id="btn-settings">⚙️</button>
+				<button id="btn-info">ℹ️</button>
 			</header>
 			<section class="form-section">
 				<form class="form-set-account">
@@ -55,7 +55,72 @@
 			</section>
 		</section>
 
-		<section class="settings-modal"></section>
+		<section id="settings-modal" class="settings-modal hidden">
+			<header class="header-section">
+				<img class="logo" src="/assets/vwo/vwo-logo-256.png" alt="" class="logo" />
+				<h1 class="full main-title">Impersonator</h1>
+				<button id="btn-close">❌</button>
+			</header>
+			<section class="settings-main-section">
+				<section class="settings">
+					<div class="lists-title">
+						<p>Settings</p>
+					</div>
+					<li>
+						<p>Export Accounts List</p>
+						<button id="btn-export">📝</button>
+					</li>
+					<li>
+						<p>Import Accounts List</p>
+						<button id="btn-import">📄</button>
+					</li>
+					<li>
+						<p>Import Impersonate Bookmarks</p>
+						<button id="btn-bookmarks">📋</button>
+					</li>
+				</section>
+				<!-- <section class="backup">
+					<div class="lists-title">
+						<p>Backups</p>
+					</div>
+					<li>
+						<p>Restore</p>
+						<p>Date</p>
+						<button class="btn-restore">🔄</button>
+					</li>
+					<li>
+						<p>Restore</p>
+						<p>Date</p>
+						<button class="btn-restore">🔄</button>
+					</li>
+					<li>
+						<p>Restore</p>
+						<p>Date</p>
+						<button class="btn-restore">🔄</button>
+					</li>
+					<li>
+						<p>Restore</p>
+						<p>Date</p>
+						<button class="btn-restore">🔄</button>
+					</li>
+					<li>
+						<p>Restore</p>
+						<p>Date</p>
+						<button class="btn-restore">🔄</button>
+					</li>
+				</section> -->
+				<section class="status">
+					<div class="lists-title">
+						<p>Status</p>
+					</div>
+					<div class="size-row">
+						<span class="acc-num">n#</span>
+						<span class="acc-byte">Bytes</span>
+					</div>
+				</section>
+			</section>
+			<footer class="about"><p>powered by paulo.lima</p></footer>
+		</section>
 
 		<script src="app.js"></script>
 	</body>

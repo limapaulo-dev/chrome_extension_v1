@@ -1,3 +1,19 @@
+document.getElementById('btn-info').addEventListener('click', () => {
+	const modal = document.getElementById('settings-modal');
+	const mainSection = document.querySelector('.main-section');
+
+	const { top, left, width, height } = mainSection.getBoundingClientRect();
+
+	modal.style.top = `${top}px`;
+	modal.style.left = `${left}px`;
+	modal.style.width = `${width}px`;
+	modal.style.height = `${height}px`;
+
+	updateAccountInfo();
+
+	modal.classList.remove('hidden');
+});
+
 document.querySelector('#btn-impersonate').addEventListener('mouseover', function () {
 	document.querySelector('#account-name').removeAttribute('required');
 });
@@ -106,17 +122,15 @@ const impersonate = (account_id) => {
 		const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
 		const ssoUrl = `${baseUrl}/#/sso`;
 
-		chrome.cookies.get({ url: baseUrl, name: 'vwo_logged_in' }, (cookie) => {
-			const impersonator_URL = cookie ? loggedInUrl : ssoUrl;
+		chrome.runtime.sendMessage({ event: 'login-check', url: loggedInUrl }, (response) => {
+			const impersonator_URL = response?.loggedIn ? loggedInUrl : ssoUrl;
 
-			if (!cookie) {
-				chrome.runtime.sendMessage({ event: 'login' });
-				check_tabs(baseUrl, impersonator_URL);
-				resolve(false);
-			} else {
-				check_tabs(baseUrl, impersonator_URL);
-				resolve(true);
+			if (!response?.loggedIn) {
+				chrome.runtime.sendMessage({ event: 'login-required' });
 			}
+
+			check_tabs(baseUrl, impersonator_URL);
+			resolve(response?.loggedIn || false);
 		});
 	});
 };
@@ -236,7 +250,10 @@ const account_exists_filter = (type, account_id) => {
 	if (filterInput) {
 		filterInput.value = account_id;
 
-		const keyupEvent = new KeyboardEvent('keyup', { bubbles: true, cancelable: true });
+		const keyupEvent = new KeyboardEvent('keyup', {
+			bubbles: true,
+			cancelable: true,
+		});
 		filterInput.dispatchEvent(keyupEvent);
 	}
 };
@@ -265,11 +282,10 @@ const createFeatures = (type, new_account) => {
 };
 
 const createAcc = ({ list, account_id, account_name }) => {
-
 	const type = list.classList.contains('last-impersonated-group') ? 'last-impersonated' : 'accounts-list';
 
 	if (!is_account_new(type, account_id)) {
-		account_exists_filter(type, account_id);
+		/* account_exists_filter(type, account_id); */
 		return;
 	}
 
@@ -375,7 +391,7 @@ const push_data = () => {
 		},
 	};
 	chrome.runtime.sendMessage({ event: 'save', prefs });
-	logLocalStorageDetails();
+	logSyncStorageDetails();
 };
 
 const formatBytes = (bytes) => {
@@ -386,7 +402,7 @@ const formatBytes = (bytes) => {
 	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-const logLocalStorageDetails = () => {
+const logSyncStorageDetails = () => {
 	chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
 		console.log('Sync Storage Size: ' + formatBytes(bytesInUse));
 	});
@@ -425,21 +441,66 @@ chrome.storage.sync.get('popup', (result) => {
 			pull_account(li, list_group_ul);
 		});
 
-		if (popup.recently_impersonated_dropdown == true) {
+		if (popup.last_impersonated_dropdown == true) {
 			document.querySelector('.last-impersonated button.dropdown').classList.add('up');
-			document.querySelector('.last-impersonated-group').style.display = 'none';
+			document.querySelector('.last-impersonated-groups').style.display = 'none';
 		}
 
 		if (popup.list_group_dropdown == true) {
 			document.querySelector('.accounts-list button.dropdown').classList.add('up');
-
-			document.querySelectorAll('.lists-groups ul').forEach((ul) => {
-				ul.style.display = 'none';
-			});
+			document.querySelector('.lists-groups').style.display = 'none';
 		}
 	}
 });
 
+window.addEventListener('blur', () => {
+	push_data();
+});
+
+//modal
+document.getElementById('btn-close').addEventListener('click', () => {
+	const modal = document.getElementById('settings-modal');
+	modal.classList.add('hidden');
+});
+
+document.getElementById('btn-bookmarks').addEventListener('click', () => {
+	//First block
+	chrome.bookmarks.getTree(async (bookmarks) => {
+		traverseBookmarks(bookmarks);
+	});
+	//Second block
+	setTimeout(() => {
+		updateAccountInfo();
+	}, 125);
+	chrome.runtime.sendMessage({ event: 'bookmarks-imported' });
+});
+
+const getSyncInUse = () => {
+	return new Promise((resolve) => {
+		chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
+			const formattedBytes = formatBytes(bytesInUse);
+			resolve(formattedBytes); // Resolve the promise with the value
+		});
+	});
+};
+
+const updateAccountInfo = async () => {
+	// Get the number of <li> elements in the accounts list
+	const accountList = document.querySelector('.accounts-list');
+	const numAccounts = accountList ? accountList.querySelectorAll('li').length : 0;
+
+	// Update the account number span with new text and emoji
+	const accNumElement = document.querySelector('.acc-num');
+	if (accNumElement) {
+		accNumElement.textContent = `Accounts: ${numAccounts} 👤`; // Updated format
+	}
+
+	// Get the size of the sync storage and update the byte span
+	const accByteElement = document.querySelector('.acc-byte');
+	accByteElement.textContent = `Sync Storage: ${await getSyncInUse()} 🔋`; // Updated format
+};
+
+// Traverse Bookmarks and return a promise
 const traverseBookmarks = (bookmarks) => {
 	const regex = /accountId\s*=\s*(\d+);/;
 
@@ -461,20 +522,3 @@ const traverseBookmarks = (bookmarks) => {
 		}
 	});
 };
-
-chrome.storage.sync.get('bookmarks_import', (result) => {
-	if (!result.bookmarks_import) {
-		result.bookmarks_import = {};
-	}
-	if (!result.bookmarks_import.bookmarks_imported) {
-		chrome.bookmarks.getTree((bookmarkTreeNodes) => {
-			traverseBookmarks(bookmarkTreeNodes);
-			result.bookmarks_import.bookmarks_imported = true;
-			chrome.storage.sync.set({ bookmarks_import: result.bookmarks_import }, () => {});
-		});
-	}
-});
-
-window.addEventListener('blur', () => {
-	push_data();
-});
