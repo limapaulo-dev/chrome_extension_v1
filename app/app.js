@@ -268,7 +268,6 @@ const createAcc = ({ list, account_id, account_name }) => {
 	const type = list.classList.contains('last-impersonated-group') ? 'last-impersonated' : 'accounts-list';
 
 	if (!is_account_new(type, account_id)) {
-		/* account_exists_filter(type, account_id); */
 		return;
 	}
 
@@ -346,7 +345,6 @@ const push_data = () => {
 		},
 	};
 	chrome.runtime.sendMessage({ event: 'save', prefs });
-	logSyncStorageDetails();
 };
 
 //return storage data in readable format
