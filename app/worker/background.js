@@ -5,34 +5,19 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 			break;
 
 		case 'export-data':
-			chrome.notifications.create({
-				type: 'basic',
-				iconUrl: '../../assets/vwo/vwo-icon-256.png',
-				title: 'Data Exported',
-				message: 'Impersonator Data Exported successfully',
-			});
+			basicNotifications('Data Exported', 'Impersonator data exported successfully');
 			break;
 
 		case 'import-data':
 			importSyncData(data.data);
-			chrome.notifications.create({
-				type: 'basic',
-				iconUrl: '../../assets/vwo/vwo-icon-256.png',
-				title: 'Data Imported',
-				message: 'Impersonator Data Imported successfully',
-			});
+			basicNotifications('Data Imported', 'Impersonator data imported successfully');
 			setTimeout(() => {
 				chrome.runtime.reload();
 			}, 200);
 			break;
 
 		case 'bookmarks-imported':
-			chrome.notifications.create({
-				type: 'basic',
-				iconUrl: '../../assets/vwo/vwo-icon-256.png',
-				title: 'Bookmarks Imported',
-				message: 'All impersonate bookmarks have been imported',
-			});
+			basicNotifications('Bookmarks Imported', 'Impersonate bookmarks imported successfully');
 			break;
 
 		case 'login-check':
@@ -47,27 +32,26 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 			break;
 
 		case 'login-required':
-			chrome.notifications.create({
-				type: 'basic',
-				iconUrl: '../../assets/vwo/vwo-icon-256.png',
-				title: 'Login Required',
-				message: 'Please log in with your VWO account',
-			});
+			basicNotifications('Login Required', 'Please log in with your VWO account');
 			break;
 
-		case 'account-not-new':
-			chrome.notifications.create({
-				type: 'basic',
-				iconUrl: '../../assets/vwo/vwo-icon-256.png',
-				title: 'Repeated Account ID',
-				message: 'This Account ID is already present on the list',
-			});
+		case 'repeated-account-id':
+			basicNotifications('Repeated Account ID', 'This Account ID is already on the list');
 			break;
 
 		default:
 			break;
 	}
 });
+
+const basicNotifications = (title, message) => {
+	chrome.notifications.create({
+		type: 'basic',
+		iconUrl: '../../assets/vwo/vwo-icon-256.png',
+		title: title,
+		message: message,
+	});
+};
 
 const importSyncData = (jsonData) => {
 	chrome.storage.sync.set(jsonData, () => {
