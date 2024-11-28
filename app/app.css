@@ -115,11 +115,6 @@ input[type='number']::-webkit-inner-spin-button {
 	margin: 0;
 }
 
-:root,
-html {
-	overflow: hidden;
-}
-
 body {
 	margin: 0;
 	line-height: 1.5;
@@ -128,8 +123,8 @@ body {
 	background-color: #f3f3f3;
 	font-size: 14px;
 	color: #545454;
-	font-family: 'Inter', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	overflow: hidden;
+	font-family: 'Inter', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* border */
@@ -190,6 +185,10 @@ table {
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
+}
+
+.main-section.blurred {
+	pointer-events: none; /* Optional: Disable interaction */
 }
 
 section.accounts-list {
@@ -355,7 +354,6 @@ img.logo {
 .accounts-list-group {
 	overflow: hidden;
 	max-height: auto;
-	transition: max-height 0.5s ease;
 }
 
 .accounts-list-group.hide {
@@ -372,8 +370,7 @@ img.logo {
 	gap: 5px;
 }
 
-.settings-modal .lists-title,
-.size-row {
+.settings-modal .lists-title {
 	height: 25px;
 }
 
@@ -384,23 +381,16 @@ img.logo {
 	gap: 5px;
 }
 
-span.acc-num {
+.status p {
 	padding-left: 5px;
 }
 
-span.acc-byte {
-	padding-right: 5px;
-}
-
-footer {
+.status span {
 	display: flex;
-	flex-direction: row-reverse;
+	justify-content: center;
 	align-items: center;
-}
-
-footer p {
-	font-size: 11px;
-	color: #949494;
+	height: 25px;
+	padding-right: 5px;
 }
 
 .hidden {

@@ -4,7 +4,26 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 			chrome.storage.sync.set(data.prefs);
 			break;
 
-		case 'load':
+		case 'export-data':
+			chrome.notifications.create({
+				type: 'basic',
+				iconUrl: '../../assets/vwo/vwo-icon-256.png',
+				title: 'Data Exported',
+				message: 'Impersonator Data Exported successfully',
+			});
+			break;
+
+		case 'import-data':
+			importSyncData(data.data);
+			chrome.notifications.create({
+				type: 'basic',
+				iconUrl: '../../assets/vwo/vwo-icon-256.png',
+				title: 'Data Imported',
+				message: 'Impersonator Data Imported successfully',
+			});
+			setTimeout(() => {
+				chrome.runtime.reload();
+			}, 200);
 			break;
 
 		case 'bookmarks-imported':
@@ -36,7 +55,22 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 			});
 			break;
 
+		case 'account-not-new':
+			chrome.notifications.create({
+				type: 'basic',
+				iconUrl: '../../assets/vwo/vwo-icon-256.png',
+				title: 'Repeated Account ID',
+				message: 'This Account ID is already present on the list',
+			});
+			break;
+
 		default:
 			break;
 	}
 });
+
+const importSyncData = (jsonData) => {
+	chrome.storage.sync.set(jsonData, () => {
+		console.log('Sync storage data imported and overridden');
+	});
+};

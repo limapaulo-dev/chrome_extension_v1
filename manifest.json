@@ -15,6 +15,6 @@
 		"service_worker": "app/worker/background.js",
 		"type": "module"
 	},
-	"permissions": ["storage", "tabs", "bookmarks", "windows", "notifications", "downloads"],
+	"permissions": ["storage", "tabs", "bookmarks", "windows", "notifications"],
 	"host_permissions": ["https://app.vwo.com/*"]
 }

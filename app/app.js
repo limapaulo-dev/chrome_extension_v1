@@ -1,39 +1,22 @@
-document.getElementById('btn-info').addEventListener('click', () => {
-	const modal = document.getElementById('settings-modal');
-	const mainSection = document.querySelector('.main-section');
-
-	const { top, left, width, height } = mainSection.getBoundingClientRect();
-
-	modal.style.top = `${top}px`;
-	modal.style.left = `${left}px`;
-	modal.style.width = `${width}px`;
-	modal.style.height = `${height}px`;
-
-	updateAccountInfo();
-
-	modal.classList.remove('hidden');
-});
-
-document.querySelector('#btn-impersonate').addEventListener('mouseover', function () {
+/* --- Main Section --- */
+//btn-impersonate set form requirement
+document.getElementById('btn-impersonate').addEventListener('mouseover', function () {
 	document.querySelector('#account-name').removeAttribute('required');
 });
-
-document.querySelector('#btn-impersonate').addEventListener('mouseout', function () {
+document.getElementById('btn-impersonate').addEventListener('mouseout', function () {
 	document.querySelector('#account-name').setAttribute('required', '');
 });
 
-document.querySelectorAll('.btn-impersonate').forEach((btn) => {
-	btn_event_listener(btn);
-});
-
+//account-id input mask
 document.getElementById('account-id').addEventListener('input', (event) => {
 	event.target.value = event.target.value.replace(/^0+/, '').replace(/[^\d]/g, '');
 });
 
+//filter input
 document.getElementById('filter-list-input').addEventListener('keyup', function () {
 	let filterValue = this.value.toLowerCase().trim();
 	let filterWords = filterValue.split(/\s+/);
-	let items = document.querySelectorAll('li');
+	let items = document.querySelectorAll('.main-section li');
 
 	items.forEach((item) => {
 		let itemText = item.textContent.toLowerCase();
@@ -48,6 +31,7 @@ document.getElementById('filter-list-input').addEventListener('keyup', function 
 	push_data();
 });
 
+//dropdown functionality
 document.querySelectorAll('.dropdown').forEach((dropdown) => {
 	dropdown.addEventListener('click', function () {
 		let parent = this.parentElement;
@@ -68,6 +52,7 @@ document.querySelectorAll('.dropdown').forEach((dropdown) => {
 	});
 });
 
+//impersonate and save accounts form
 document.querySelector('.form-set-account').addEventListener('submit', async (event) => {
 	event.preventDefault();
 
@@ -87,10 +72,19 @@ document.querySelector('.form-set-account').addEventListener('submit', async (ev
 		return;
 	}
 
+	const type = list.classList.contains('last-impersonated-group') ? 'last-impersonated' : 'accounts-list';
+
+	if (!is_account_new(type, account_id)) {
+		account_exists_filter(type, account_id);
+		chrome.runtime.sendMessage({ event: 'account-not-new' });
+		return;
+	}
+
 	createAcc(accountData);
 	push_data();
 });
 
+// last 5 impersonated accounts cycling
 const last_used_cycle = (list) => {
 	if (list.children.length > 4) {
 		let first_born = list.lastElementChild;
@@ -99,6 +93,7 @@ const last_used_cycle = (list) => {
 	}
 };
 
+// check if a vwo tab is opened on the active browser window
 const check_tabs = (baseUrl, finalUrl) => {
 	chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, (tabs) => {
 		let foundTab = false;
@@ -116,6 +111,7 @@ const check_tabs = (baseUrl, finalUrl) => {
 	});
 };
 
+// impersonate function
 const impersonate = (account_id) => {
 	return new Promise((resolve) => {
 		const baseUrl = 'https://app.vwo.com';
@@ -135,6 +131,7 @@ const impersonate = (account_id) => {
 	});
 };
 
+//impersonate accounts event listener
 const impersonate_event = (btn) => {
 	btn.addEventListener('click', async (event) => {
 		const account = event.target.parentElement;
@@ -158,52 +155,17 @@ const impersonate_event = (btn) => {
 	});
 };
 
+//delete accounts event listener
 const delete_event = (btn) => {
 	btn.addEventListener('click', () => {
 		btn.parentElement.remove();
-		sort_account_list();
+		let acc_list = document.querySelector('.accounts-list-group');
+		sort_accounts(acc_list);
 		push_data();
 	});
 };
 
-const sort_last_impersonated_list = () => {
-	let ul = document.querySelector('.last-impersonated-group');
-	const liArray = Array.from(ul.children);
-	liArray.reverse();
-	liArray.forEach((li) => ul.appendChild(li));
-};
-
-const sort_accounts = (list) => {
-	let liArray = Array.from(list.querySelectorAll('li'));
-
-	liArray.sort(function (a, b) {
-		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
-		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
-		return numB - numA;
-	});
-
-	liArray.forEach((li, index) => {
-		li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
-		list.appendChild(li);
-	});
-};
-
-const sort_account_list = () => {
-	let ul = document.querySelector('.accounts-list-group');
-	let liArray = Array.from(ul.querySelectorAll('li'));
-
-	liArray.sort(function (a, b) {
-		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
-		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
-		return numB - numA;
-	});
-
-	liArray.forEach((li, index) => {
-		li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
-		ul.appendChild(li);
-	});
-};
-
+//pin accounts event listener
 const pin_event = (btn) => {
 	btn.addEventListener('click', () => {
 		let li = btn.parentElement;
@@ -219,11 +181,29 @@ const pin_event = (btn) => {
 			btn.classList.add('pinned-down');
 			ul_pinned.appendChild(li);
 		}
-		sort_account_list();
+		let acc_list = document.querySelector('.accounts-list-group');
+		sort_accounts(acc_list);
 		push_data();
 	});
 };
 
+//sort lists
+const sort_accounts = (list) => {
+	let liArray = Array.from(list.querySelectorAll('li'));
+
+	liArray.sort(function (a, b) {
+		const numA = parseInt(a.className.match(/account-(\d+)/)[1]);
+		const numB = parseInt(b.className.match(/account-(\d+)/)[1]);
+		return numB - numA;
+	});
+
+	liArray.forEach((li, index) => {
+		li.className = li.className.replace(/account-\d+/, `account-${liArray.length - index}`);
+		list.appendChild(li);
+	});
+};
+
+//check if account is new
 const is_account_new = (type, account_id) => {
 	let is_account_new = true;
 
@@ -241,6 +221,7 @@ const is_account_new = (type, account_id) => {
 	return is_account_new;
 };
 
+//filter list if accounts is not new
 const account_exists_filter = (type, account_id) => {
 	if (type === 'last-impersonated') {
 		return;
@@ -258,6 +239,7 @@ const account_exists_filter = (type, account_id) => {
 	}
 };
 
+//function to create features of each account
 const createFeatures = (type, new_account) => {
 	let btn_impersonate = document.createElement('button');
 	btn_impersonate.textContent = '🎭';
@@ -281,6 +263,7 @@ const createFeatures = (type, new_account) => {
 	new_account.appendChild(btn_impersonate);
 };
 
+//function to create new accounts
 const createAcc = ({ list, account_id, account_name }) => {
 	const type = list.classList.contains('last-impersonated-group') ? 'last-impersonated' : 'accounts-list';
 
@@ -315,6 +298,7 @@ const createAcc = ({ list, account_id, account_name }) => {
 	push_data();
 };
 
+//push accounts list to storage
 const push_list = (list) => {
 	const arr = [];
 
@@ -331,36 +315,7 @@ const push_list = (list) => {
 	return arr;
 };
 
-const pull_account = (li, ul) => {
-	let type = 'accounts-list-group';
-
-	if (ul.classList.contains('last-impersonated-group')) {
-		type = 'last-impersonated';
-	}
-
-	let account = document.createElement('li');
-	let account_id = document.createElement('p');
-	let account_name = document.createElement('p');
-
-	account.classList.add(...li.acc_class_order.split(' '));
-
-	account_id.textContent = li.acc_id;
-	account_id.classList.add('account-id', 'list-id');
-	account.appendChild(account_id);
-
-	account_name.textContent = li.acc_name;
-	account_name.classList.add('account-name', 'list-name', 'full');
-	account.appendChild(account_name);
-
-	createFeatures(type, account);
-
-	if (ul.classList.contains('accounts-pinned-group')) {
-		account.querySelector('.btn-pin').classList.add('pinned-down');
-	}
-
-	ul.appendChild(account);
-};
-
+//push all data to sync storage
 const push_data = () => {
 	const id_input = document.querySelector('#account-id').value;
 	const name_input = document.querySelector('#account-name').value;
@@ -394,6 +349,7 @@ const push_data = () => {
 	logSyncStorageDetails();
 };
 
+//return storage data in readable format
 const formatBytes = (bytes) => {
 	if (bytes === 0) return '0 Bytes';
 	const k = 1024;
@@ -402,6 +358,7 @@ const formatBytes = (bytes) => {
 	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
+//log  storage data for debug purpose
 const logSyncStorageDetails = () => {
 	chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
 		console.log('Sync Storage Size: ' + formatBytes(bytesInUse));
@@ -418,6 +375,38 @@ const logSyncStorageDetails = () => {
 	});
 };
 
+//pull accounts list from sync storage
+const pull_account = (li, ul) => {
+	let type = 'accounts-list-group';
+
+	if (ul.classList.contains('last-impersonated-group')) {
+		type = 'last-impersonated';
+	}
+
+	let account = document.createElement('li');
+	let account_id = document.createElement('p');
+	let account_name = document.createElement('p');
+
+	account.classList.add(...li.acc_class_order.split(' '));
+
+	account_id.textContent = li.acc_id;
+	account_id.classList.add('account-id', 'list-id');
+	account.appendChild(account_id);
+
+	account_name.textContent = li.acc_name;
+	account_name.classList.add('account-name', 'list-name', 'full');
+	account.appendChild(account_name);
+
+	createFeatures(type, account);
+
+	if (ul.classList.contains('accounts-pinned-group')) {
+		account.querySelector('.btn-pin').classList.add('pinned-down');
+	}
+
+	ul.appendChild(account);
+};
+
+//pull data from sync storage
 chrome.storage.sync.get('popup', (result) => {
 	if (result.popup) {
 		const { popup } = result;
@@ -457,12 +446,77 @@ window.addEventListener('blur', () => {
 	push_data();
 });
 
-//modal
+/* --- Settings Modal Section --- */
+
+//open settings
+document.getElementById('btn-info').addEventListener('click', () => {
+	const modal = document.getElementById('settings-modal');
+	const mainSection = document.querySelector('.main-section');
+
+	const { top, left, width, height } = mainSection.getBoundingClientRect();
+
+	modal.style.top = `${top}px`;
+	modal.style.left = `${left}px`;
+	modal.style.width = `${width}px`;
+
+	updateAccountInfo();
+
+	modal.classList.remove('hidden');
+	document.querySelector('body').style.height = '265px';
+	document.querySelector('.main-section').classList.add('hidden');
+});
+
+//close settings
 document.getElementById('btn-close').addEventListener('click', () => {
 	const modal = document.getElementById('settings-modal');
 	modal.classList.add('hidden');
+	document.querySelector('body').style.height = 'auto';
+	document.querySelector('.main-section').classList.remove('hidden');
 });
 
+//export impersonator data
+document.getElementById('btn-export').addEventListener('click', async () => {
+	chrome.storage.sync.get(null, (items) => {
+		const jsonData = JSON.stringify(items, null, 2);
+		const blob = new Blob([jsonData], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+
+		const anchor = document.createElement('a');
+		anchor.href = url;
+		anchor.download = 'sync-data.json'; // File name
+		anchor.style.display = 'none';
+		document.body.appendChild(anchor);
+		anchor.click();
+		document.body.removeChild(anchor);
+		URL.revokeObjectURL(url);
+	});
+	setTimeout(() => {
+		chrome.runtime.sendMessage({ event: 'export-data' });
+	}, 200);
+});
+
+//import impersonator data
+document.getElementById('btn-import').addEventListener('click', () => {
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+
+	fileInput.click();
+
+	fileInput.addEventListener('change', () => {
+		const file = fileInput.files[0];
+		if (file) {
+			const reader = new FileReader();
+
+			reader.onload = () => {
+				const jsonData = JSON.parse(reader.result);
+				chrome.runtime.sendMessage({ event: 'import-data', data: jsonData });
+			};
+			reader.readAsText(file);
+		}
+	});
+});
+
+//import bookmarks
 document.getElementById('btn-bookmarks').addEventListener('click', () => {
 	chrome.bookmarks.getTree(async (bookmarks) => {
 		traverseBookmarks(bookmarks);
@@ -474,27 +528,25 @@ document.getElementById('btn-bookmarks').addEventListener('click', () => {
 	}, 125);
 });
 
+// Update Account List Number and Size
 const updateAccountInfo = () => {
-	// Get the number of <li> elements in the accounts list
 	const accountList = document.querySelector('.accounts-list');
 	const numAccounts = accountList ? accountList.querySelectorAll('li').length : 0;
 
-	// Update the account number span with new text and emoji
 	const accNumElement = document.querySelector('.acc-num');
 	if (accNumElement) {
-		accNumElement.textContent = `Accounts: ${numAccounts} 👤`; // Updated format
+		accNumElement.textContent = `${numAccounts} 👤`;
 	}
 
-	// Get the size of the sync storage and update the byte span
 	chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
 		const accByteElement = document.querySelector('.acc-byte');
 		if (accByteElement) {
-			accByteElement.textContent = `Sync Storage: ${formatBytes(bytesInUse)} 🔋`; // Updated format
+			accByteElement.textContent = `${formatBytes(bytesInUse)} 🔋`;
 		}
 	});
 };
 
-// Traverse Bookmarks and return a promise
+// Traverse Bookmarks
 const traverseBookmarks = (bookmarks) => {
 	const regex = /accountId\s*=\s*(\d+);/;
 
