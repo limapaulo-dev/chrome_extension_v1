@@ -76,7 +76,6 @@ document.querySelector('.form-set-account').addEventListener('submit', async (ev
 
 	if (!is_account_new(type, account_id)) {
 		account_exists_filter(type, account_id);
-		chrome.runtime.sendMessage({ event: 'repeated-account-id' });
 		return;
 	}
 
@@ -237,6 +236,7 @@ const account_exists_filter = (type, account_id) => {
 		});
 		filterInput.dispatchEvent(keyupEvent);
 	}
+	chrome.runtime.sendMessage({ event: 'repeated-account-id' });
 };
 
 //function to create features of each account
