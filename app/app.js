@@ -69,6 +69,7 @@ document.querySelector('.form-set-account').addEventListener('submit', async (ev
 	};
 
 	if (isImpersonate && !(await impersonate(account_id))) {
+		push_data();
 		return;
 	}
 
@@ -76,6 +77,7 @@ document.querySelector('.form-set-account').addEventListener('submit', async (ev
 
 	if (!is_account_new(type, account_id)) {
 		account_exists_filter(type, account_id);
+		push_data();
 		return;
 	}
 
