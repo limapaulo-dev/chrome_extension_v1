@@ -128,7 +128,7 @@ body {
 }
 
 /* border */
-.form-inputs button,
+button,
 input,
 .header-section,
 .last-impersonated,
@@ -233,13 +233,8 @@ input:focus {
 	outline: rgb(215, 215, 215) 1px solid;
 }
 
-.form-inputs button {
-	background-color: white;
-}
-
 button {
 	font-size: 16px;
-	background-color: inherit;
 }
 
 button:hover:not(.header-section button) {
@@ -308,17 +303,16 @@ li,
 	gap: 3px;
 	width: 100%;
 	white-space: nowrap;
-	background-color: white;
 }
 
-li:hover {
+li:hover,
+li:hover button {
 	background-color: rgb(236, 236, 236);
 }
-li.pinned-down:hover {
-	background-color: rgb(172, 194, 217);
-}
+
+li.pinned-down:hover,
 li.pinned-down:hover button {
-	background-color: rgb(172, 194, 217);
+	background-color: rgb(160, 185, 210);
 }
 
 li.pinned-down,
