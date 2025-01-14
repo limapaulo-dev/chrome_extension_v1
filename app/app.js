@@ -120,7 +120,10 @@ const impersonate = (account_id) => {
 		const ssoUrl = `${baseUrl}/#/sso`;
 
 		chrome.runtime.sendMessage({ event: 'login-check', url: loggedInUrl }, (response) => {
+			console.log(response);
+
 			if (response?.offline) {
+				console.log('offline');
 				chrome.runtime.sendMessage({ event: 'offline-error' });
 				resolve(false);
 				return;
@@ -134,6 +137,7 @@ const impersonate = (account_id) => {
 
 			check_tabs(baseUrl, impersonator_URL);
 			resolve(response?.loggedIn || false);
+			
 		});
 	});
 };
