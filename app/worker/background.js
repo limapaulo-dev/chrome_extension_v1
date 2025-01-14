@@ -25,8 +25,12 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 				.then((response) => {
 					sendResponse({ loggedIn: response.ok });
 				})
-				.catch(() => {
-					sendResponse({ loggedIn: false });
+				.catch((error) => {
+					if (error instanceof TypeError && error.message === 'Failed to fetch') {
+						sendResponse({ offline: true });
+					} else {
+						sendResponse({ loggedIn: false });
+					}
 				});
 			return true;
 

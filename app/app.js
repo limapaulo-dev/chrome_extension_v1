@@ -123,7 +123,6 @@ const impersonate = (account_id) => {
 			console.log(response);
 
 			if (response?.offline) {
-				console.log('offline');
 				chrome.runtime.sendMessage({ event: 'offline-error' });
 				resolve(false);
 				return;
@@ -137,7 +136,7 @@ const impersonate = (account_id) => {
 
 			check_tabs(baseUrl, impersonator_URL);
 			resolve(response?.loggedIn || false);
-			
+
 		});
 	});
 };
