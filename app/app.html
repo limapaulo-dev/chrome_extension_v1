@@ -58,42 +58,44 @@
 		<section id="settings-modal" class="settings-modal hidden">
 			<header class="header-section">
 				<img class="logo" src="/assets/vwo/vwo-logo-256.png" alt="" class="logo" />
-				<h1 class="full main-title">Settings</h1>
-				<button id="btn-close">🔙</button>
+				<h1 class="full main-title">Impersonator</h1>
 			</header>
-			<section class="settings-main-section">
-				<section class="settings">
-					<div class="lists-title">
-						<p>Backup and Restore</p>
-					</div>
+			<section class="settings-title lists-title">
+				<p class="group-name-title full">Settings</p>
+				<button id="btn-close">🔙</button>
+			</section>
+
+			<section class="backup-restore">
+				<div class="lists-title">
+					<p>Backup and Restore</p>
+				</div>
+				<li>
+					<p>Export Impersonator Data</p>
+					<button id="btn-export">📝</button>
+				</li>
+				<li>
+					<p>Import Impersonator Data</p>
+					<button id="btn-import">📄</button>
+				</li>
+				<li>
+					<p>Import Impersonate Bookmarks</p>
+					<button id="btn-bookmarks">📋</button>
+				</li>
+			</section>
+			<section class="status">
+				<div class="lists-title">
+					<p>Status</p>
+				</div>
+				<div class="size-rows">
 					<li>
-						<p>Export Impersonator Data</p>
-						<button id="btn-export">📝</button>
+						<p>Accounts Stored</p>
+						<span class="acc-num">n#</span>
 					</li>
 					<li>
-						<p>Import Impersonator Data</p>
-						<button id="btn-import">📄</button>
+						<p>Data Sync Usage</p>
+						<span class="acc-byte">Bytes</span>
 					</li>
-					<li>
-						<p>Import Impersonate Bookmarks</p>
-						<button id="btn-bookmarks">📋</button>
-					</li>
-				</section>
-				<section class="status">
-					<div class="lists-title">
-						<p>Status</p>
-					</div>
-					<div class="size-rows">
-						<li>
-							<p>Accounts Stored</p>
-							<span class="acc-num">n#</span>
-						</li>
-						<li>
-							<p>Synced Storage Used</p>
-							<span class="acc-byte">Bytes</span>
-						</li>
-					</div>
-				</section>
+				</div>
 			</section>
 		</section>
 

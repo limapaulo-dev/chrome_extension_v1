@@ -120,6 +120,12 @@ const impersonate = (account_id) => {
 		const ssoUrl = `${baseUrl}/#/sso`;
 
 		chrome.runtime.sendMessage({ event: 'login-check', url: loggedInUrl }, (response) => {
+			if (response?.offline) {
+				chrome.runtime.sendMessage({ event: 'offline-error' });
+				resolve(false);
+				return;
+			}
+
 			const impersonator_URL = response?.loggedIn ? loggedInUrl : ssoUrl;
 
 			if (!response?.loggedIn) {
@@ -462,7 +468,7 @@ document.getElementById('btn-info').addEventListener('click', () => {
 	updateAccountInfo();
 
 	modal.classList.remove('hidden');
-	document.querySelector('body').style.height = '265px';
+	document.querySelector('body').style.height = '300px';
 	document.querySelector('.main-section').classList.add('hidden');
 });
 

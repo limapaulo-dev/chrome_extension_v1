@@ -29,10 +29,13 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 					sendResponse({ loggedIn: false });
 				});
 			return true;
-			break;
 
 		case 'login-required':
 			basicNotifications('Login Required', 'Please log in with your VWO account');
+			break;
+
+		case 'offline-error':
+			basicNotifications('The VWO app or your internet connection appears to be offline.');
 			break;
 
 		case 'repeated-account-id':

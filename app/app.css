@@ -134,8 +134,8 @@ input,
 .last-impersonated,
 .accounts-list,
 .status,
-.backup,
-.settings {
+.backup-restore,
+.settings-title {
 	border: rgb(230, 230, 230) 1px solid;
 	border-radius: 3px;
 	background-color: white;
@@ -288,6 +288,7 @@ ul {
 }
 
 li,
+.main-title,
 .lists-title,
 .header-section,
 .form-inputs,
@@ -362,6 +363,10 @@ img.logo {
 	justify-content: space-between;
 	z-index: 1000;
 	gap: 5px;
+}
+
+.settings-modal button {
+	border-width: 0;
 }
 
 .settings-modal .lists-title {
