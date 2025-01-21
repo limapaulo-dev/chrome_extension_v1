@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "VWO Impersonator",
 	"description": "Chrome Extension to make impersonating accounts easier and with QOL functionalities",
-	"version": "1.5.3",
+	"version": "1.6.0",
 	"action": {
 		"default_popup": "app/app.html"
 	},
@@ -15,6 +15,6 @@
 		"service_worker": "app/worker/background.js",
 		"type": "module"
 	},
-	"permissions": ["storage", "tabs", "bookmarks", "windows", "notifications"],
-	"host_permissions": ["https://app.vwo.com/*"]
+	"permissions": ["storage", "tabs", "bookmarks", "windows", "scripting", "notifications"],
+	"host_permissions": ["https://app.vwo.com/*", "https://*.lightning.force.com/*"]
 }

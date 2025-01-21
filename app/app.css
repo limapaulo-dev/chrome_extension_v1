@@ -355,6 +355,8 @@ img.logo {
 	max-height: 0;
 }
 
+/* --- Settings Modal Section --- */
+
 .settings-modal {
 	position: absolute;
 	background-color: #f3f3f3;
@@ -394,4 +396,28 @@ img.logo {
 
 .hidden {
 	display: none;
+}
+
+/* --- Tooltip handler --- */
+
+.tooltip {
+	position: absolute;
+	background: #333;
+	color: #fff;
+	padding: 6px 10px;
+	border-radius: 4px;
+	font-size: 12px;
+	white-space: nowrap;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	pointer-events: none;
+	z-index: 1000;
+	opacity: 0;
+	transform: translateY(10px);
+	transition: opacity 0.2s ease, transform 0.2s ease;
+	height: 15px;
+}
+
+.tooltip.show {
+	opacity: 1;
+	transform: translateY(0);
 }

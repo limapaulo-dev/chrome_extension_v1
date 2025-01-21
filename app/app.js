@@ -1,4 +1,5 @@
 /* --- Main Section --- */
+
 //btn-impersonate set form requirement
 document.getElementById('btn-impersonate').addEventListener('mouseover', function () {
 	document.querySelector('#account-name').removeAttribute('required');
@@ -114,14 +115,17 @@ const check_tabs = (baseUrl, finalUrl) => {
 
 // impersonate function
 const impersonate = (account_id) => {
+	if (!navigator.onLine) {
+		chrome.runtime.sendMessage({ event: 'offline-error' });
+		return;
+	}
+
 	return new Promise((resolve) => {
 		const baseUrl = 'https://app.vwo.com';
 		const loggedInUrl = `${baseUrl}/access?accountId=${account_id}`;
 		const ssoUrl = `${baseUrl}/#/sso`;
 
 		chrome.runtime.sendMessage({ event: 'login-check', url: loggedInUrl }, (response) => {
-			console.log(response);
-
 			if (response?.offline) {
 				chrome.runtime.sendMessage({ event: 'offline-error' });
 				resolve(false);
@@ -136,7 +140,6 @@ const impersonate = (account_id) => {
 
 			check_tabs(baseUrl, impersonator_URL);
 			resolve(response?.loggedIn || false);
-
 		});
 	});
 };
@@ -355,6 +358,8 @@ const push_data = () => {
 			filter_input: filter_input,
 		},
 	};
+
+	console.log(prefs);
 	chrome.runtime.sendMessage({ event: 'save', prefs });
 };
 
@@ -458,7 +463,7 @@ window.addEventListener('blur', () => {
 /* --- Settings Modal Section --- */
 
 //open settings
-document.getElementById('btn-info').addEventListener('click', () => {
+document.getElementById('btn-settings').addEventListener('click', () => {
 	const modal = document.getElementById('settings-modal');
 	const mainSection = document.querySelector('.main-section');
 
@@ -577,3 +582,54 @@ const traverseBookmarks = (bookmarks) => {
 		}
 	});
 };
+
+/* --- Tooltip handler --- */
+
+// Tooltip Show Event
+
+/* --- Account Detector --- */
+
+// Account Detector Trigger
+document.addEventListener('DOMContentLoaded', () => {
+	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+		const activeTabURL = tabs[0].url;
+
+		if (activeTabURL.includes('.force.com')) {
+			const tabId = tabs[0].id;
+			sf_acc_check(activeTabURL, tabId);
+		}
+	});
+});
+
+const sf_acc_check = (activeTabURL, tabId) => {
+	switch (true) {
+		case activeTabURL.includes('/lightning/r/Case'):
+			console.log('Case 1 SF Case.');
+			chrome.runtime.sendMessage({ event: 'sf-case', tabId: tabId });
+			break;
+
+		case activeTabURL.includes('lightning/r/Account'):
+			console.log('Case 2 SF Account.');
+			chrome.runtime.sendMessage({ event: 'sf-account', tabId: tabId });
+			break;
+
+		case activeTabURL.includes('lightning/r/Opportunity'):
+			console.log('Case 3 SF Opportunity.');
+			chrome.runtime.sendMessage({ event: 'sf-opp', tabId: tabId });
+			break;
+
+		default:
+			break;
+	}
+};
+
+//Account Data Receiver
+chrome.runtime.onMessage.addListener((message) => {
+	if (message.action === 'account-found') {
+		const { accId, accName } = message.data;
+
+		// Update the popup's input fields
+		document.getElementById('account-id').value = accId.replace(/^0+/, '').replace(/[^\d]/g, '');
+		document.getElementById('account-name').value = accName;
+	}
+});
