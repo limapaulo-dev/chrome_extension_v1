@@ -1,5 +1,10 @@
 /* --- Main Section --- */
 
+//push popup data on blur
+window.addEventListener('blur', () => {
+	push_data();
+});
+
 //btn-impersonate set form requirement
 document.getElementById('btn-impersonate').addEventListener('mouseover', function () {
 	document.querySelector('#account-name').removeAttribute('required');
@@ -359,7 +364,6 @@ const push_data = () => {
 		},
 	};
 
-	console.log(prefs);
 	chrome.runtime.sendMessage({ event: 'save', prefs });
 };
 
@@ -454,10 +458,6 @@ chrome.storage.sync.get('popup', (result) => {
 			document.querySelector('.lists-groups').style.display = 'none';
 		}
 	}
-});
-
-window.addEventListener('blur', () => {
-	push_data();
 });
 
 /* --- Settings Modal Section --- */
@@ -583,10 +583,6 @@ const traverseBookmarks = (bookmarks) => {
 	});
 };
 
-/* --- Tooltip handler --- */
-
-// Tooltip Show Event
-
 /* --- Account Detector --- */
 
 // Account Detector Trigger
@@ -594,29 +590,30 @@ document.addEventListener('DOMContentLoaded', () => {
 	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 		const activeTabURL = tabs[0].url;
 
-		if (activeTabURL.includes('.force.com')) {
+		if (activeTabURL) {
 			const tabId = tabs[0].id;
-			sf_acc_check(activeTabURL, tabId);
+			acc_check(activeTabURL, tabId);
 		}
 	});
 });
 
-const sf_acc_check = (activeTabURL, tabId) => {
+const acc_check = (activeTabURL, tabId) => {
 	switch (true) {
 		case activeTabURL.includes('/lightning/r/Case'):
-			console.log('Case 1 SF Case.');
 			chrome.runtime.sendMessage({ event: 'sf-case', tabId: tabId });
 			break;
 
 		case activeTabURL.includes('lightning/r/Account'):
-			console.log('Case 2 SF Account.');
 			chrome.runtime.sendMessage({ event: 'sf-account', tabId: tabId });
 			break;
 
 		case activeTabURL.includes('lightning/r/Opportunity'):
-			console.log('Case 3 SF Opportunity.');
 			chrome.runtime.sendMessage({ event: 'sf-opp', tabId: tabId });
 			break;
+
+		/* 		case !activeTabURL.includes('.lightning.force'):
+			chrome.runtime.sendMessage({ event: 'web-acc', activeTabURL: activeTabURL, tabId: tabId });
+			break; */
 
 		default:
 			break;
@@ -631,5 +628,7 @@ chrome.runtime.onMessage.addListener((message) => {
 		// Update the popup's input fields
 		document.getElementById('account-id').value = accId.replace(/^0+/, '').replace(/[^\d]/g, '');
 		document.getElementById('account-name').value = accName;
+
+		push_data();
 	}
 });

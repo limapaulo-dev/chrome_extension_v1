@@ -1,7 +1,8 @@
-chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
-	switch (data.event) {
+//background messages listener
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+	switch (message.event) {
 		case 'save':
-			chrome.storage.sync.set(data.prefs);
+			chrome.storage.sync.set(message.prefs);
 			break;
 
 		case 'export-data':
@@ -9,7 +10,7 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 			break;
 
 		case 'import-data':
-			importSyncData(data.data);
+			importSyncData(message.data);
 			basicNotifications('Data Imported', 'Impersonator data imported successfully');
 			setTimeout(() => {
 				chrome.runtime.reload();
@@ -21,7 +22,7 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 			break;
 
 		case 'login-check':
-			fetch(data.url, {})
+			fetch(message.url, {})
 				.then((response) => {
 					sendResponse({ loggedIn: response.ok });
 				})
@@ -49,21 +50,26 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 		case 'sf-case': {
 			const idSelector = 'lightning-formatted-number';
 			const nameSelector = 'a[href*="Lead"]';
-			sfAccountSearch(data.tabId, idSelector, nameSelector);
+			sfAccountSearch(message.tabId, idSelector, nameSelector);
 			break;
 		}
 
 		case 'sf-account': {
 			const idSelector = 'lightning-formatted-number';
 			const nameSelector = 'lightning-formatted-text';
-			sfAccountSearch(data.tabId, idSelector, nameSelector);
+			sfAccountSearch(message.tabId, idSelector, nameSelector);
 			break;
 		}
 
 		case 'sf-opp': {
 			const idSelector = 'lightning-formatted-number';
 			const nameSelector = 'records-highlights-details-item a[href*="Account"]';
-			sfAccountSearch(data.tabId, idSelector, nameSelector);
+			sfAccountSearch(message.tabId, idSelector, nameSelector);
+			break;
+		}
+
+		case 'web-acc': {
+			websiteAccSearch(message.activeTabURL, message.tabId);
 			break;
 		}
 
@@ -72,6 +78,7 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 	}
 });
 
+//basic notifications
 const basicNotifications = (title, message) => {
 	chrome.notifications.create({
 		type: 'basic',
@@ -81,11 +88,12 @@ const basicNotifications = (title, message) => {
 	});
 };
 
+//import json obj
 const importSyncData = (jsonData) => {
 	chrome.storage.sync.set(jsonData, () => {});
 };
 
-//look for a Acc ID and Name on Salesforce
+//selector for Acc ID and Name on Salesforce
 const sfAccountSearch = async (tabId, idSelector, nameSelector) => {
 	const idOBJ = await findShadowElement(tabId, idSelector);
 	const nameOBJ = await findShadowElement(tabId, nameSelector);
@@ -127,7 +135,7 @@ const traverseShadowDom = (selector) => {
 	return elements;
 };
 
-//inject Script
+//find Acc data on SF
 const findShadowElement = (tabId, selector) => {
 	return new Promise((resolve, reject) => {
 		chrome.scripting.executeScript(
@@ -177,13 +185,49 @@ const findShadowElement = (tabId, selector) => {
 			},
 			(results) => {
 				if (chrome.runtime.lastError) {
-					console.log('Error executing script:', chrome.runtime.lastError.message);
 					reject(chrome.runtime.lastError);
 				} else if (results && results[0]?.result) {
-					console.log('Matched elements:', results[0].result);
 					resolve(results[0].result);
 				} else {
-					console.log('No elements found.');
+					resolve([]);
+				}
+			}
+		);
+	});
+};
+
+//selector for Acc ID and Name on Salesforce
+const websiteAccSearch = async (activeTabURL, tabId) => {
+	const accId = await findGlobalAccId(tabId);
+	const accName = activeTabURL.replace(/^https?:\/\/(www\.)?|\/.*$/g, '');
+
+	if (accId && accId.length > 0) {
+		chrome.runtime.sendMessage({
+			action: 'account-found',
+			data: {
+				accId: accId,
+				accName: accName,
+			},
+		});
+	}
+};
+
+//find Acc data on website
+const findGlobalAccId = (tabId) => {
+	return new Promise((resolve, reject) => {
+		chrome.scripting.executeScript(
+			{
+				target: { tabId: tabId },
+				func: () => {
+					return window._vwo_acc_id || null;
+				},
+			},
+			(results) => {
+				if (chrome.runtime.lastError) {
+					reject(chrome.runtime.lastError);
+				} else if (results && results[0]?.result) {
+					resolve(results[0].result);
+				} else {
 					resolve([]);
 				}
 			}

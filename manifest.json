@@ -16,5 +16,5 @@
 		"type": "module"
 	},
 	"permissions": ["storage", "tabs", "bookmarks", "windows", "scripting", "notifications"],
-	"host_permissions": ["https://app.vwo.com/*", "https://*.lightning.force.com/*"]
+	"host_permissions": ["https://app.vwo.com/*", "http://*/*", "https://*/*", "https://*.lightning.force.com/*"]
 }
